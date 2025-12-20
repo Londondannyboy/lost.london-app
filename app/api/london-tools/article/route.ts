@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         content: article.content?.substring(0, 2000) + '...',
         excerpt: article.excerpt,
         url: article.url,
-        categories: categories.map((c: { name: string }) => c.name),
+        categories: categories.map((c) => (c as { name: string }).name),
         featured_image_url: article.featured_image_url,
       },
     })
