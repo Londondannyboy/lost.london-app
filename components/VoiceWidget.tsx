@@ -41,6 +41,13 @@ function ArticleCard({ article }: { article: Article }) {
 const LONDON_TOOLS = [
   {
     type: 'function' as const,
+    name: 'search_thorney_island',
+    description: 'Search the Thorney Island book - Vic\'s comprehensive guide to the hidden island beneath Westminster. Use this for questions about Thorney Island, Westminster Abbey, River Tyburn, the Devil\'s Acre, William Caxton, medieval Westminster, the Gatehouse prison, King Cnut, Edward the Confessor, and related topics.',
+    parameters: '{ "type": "object", "required": ["query"], "properties": { "query": { "type": "string", "description": "Search term like Tyburn, Westminster, Devil\\'s Acre, Caxton, monastery, etc" } } }',
+    fallback_content: 'Unable to search the Thorney Island knowledge base at the moment.',
+  },
+  {
+    type: 'function' as const,
     name: 'search_articles',
     description: 'Search the knowledge base of 372 London history articles by topic, place, or keyword. Use this to find articles about London history, hidden gems, walks, or specific locations.',
     parameters: '{ "type": "object", "required": ["query"], "properties": { "query": { "type": "string", "description": "Search term like Thames, Shakespeare, medieval, Lambeth, etc" } } }',
@@ -94,6 +101,16 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
         let result: any
 
         switch (name) {
+          case 'search_thorney_island':
+            response = await fetch('/api/london-tools/thorney-island', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(parameters || {}),
+            })
+            result = await response.json()
+            // Thorney Island returns chunks, not articles
+            break
+
           case 'search_articles':
             response = await fetch('/api/london-tools/search', {
               method: 'POST',
@@ -426,6 +443,7 @@ Remember: Your listeners are here because they WANT to hear these stories in ful
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           {[
+            'Thorney Island',
             'Shakespeare',
             'Medieval',
             'Tudor',
@@ -435,7 +453,6 @@ Remember: Your listeners are here because they WANT to hear these stories in ful
             'Hidden Gems',
             'Art',
             'Bridges',
-            'Gardens',
           ].map((topic) => (
             <span
               key={topic}

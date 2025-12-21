@@ -69,6 +69,47 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Thorney Island - Featured Book Section */}
+        <section className="py-12 border-b border-gray-200 bg-stone-100">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row gap-8 items-center">
+              <div className="md:w-1/3">
+                <div className="aspect-[3/4] overflow-hidden border-2 border-black shadow-lg">
+                  <img
+                    src="/lost-london-cover-3.jpg"
+                    alt="Thorney Island - Lost London Volume 3"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+              <div className="md:w-2/3">
+                <span className="inline-block bg-black text-white text-xs px-3 py-1 mb-3 font-bold tracking-wide">
+                  NEW BOOK
+                </span>
+                <h2 className="text-3xl md:text-4xl font-serif font-bold text-black mb-4">
+                  Thorney Island
+                </h2>
+                <p className="text-lg text-gray-700 font-serif leading-relaxed mb-4">
+                  The hidden island at the heart of Westminster. Beneath Parliament, Westminster Abbey, and the Supreme Court lies an ancient island formed by the River Tyburn and the Thames — a place where kings ruled, monks prayed, and history was made.
+                </p>
+                <p className="text-gray-600 mb-6">
+                  Explore 56 chapters covering the River Tyburn, the Gatehouse prison, the Devil's Acre, William Caxton, Edward the Confessor, and centuries of hidden history.
+                </p>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {['River Tyburn', 'Westminster Abbey', 'Devil\'s Acre', 'William Caxton', 'Medieval History', 'King Cnut'].map((tag) => (
+                    <span key={tag} className="px-3 py-1 text-xs bg-white text-gray-700 border border-gray-300">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-sm text-gray-500 italic">
+                  Ask VIC about Thorney Island — the knowledge base is ready to explore
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Topics Section - Newspaper Style */}
         <section className="py-12 border-b border-gray-200">
           <div className="max-w-6xl mx-auto px-4">
