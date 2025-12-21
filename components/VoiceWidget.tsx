@@ -344,38 +344,97 @@ Remember: Your listeners are here because they WANT to hear these stories in ful
           />
         )}
 
-        {/* VIC Avatar Button - BIGGER */}
+        {/* VIC Avatar Button - BIGGER with animations */}
         <button
           onClick={isConnected ? handleDisconnect : handleConnect}
           disabled={isConnecting}
           className="relative z-10 group focus:outline-none cursor-pointer"
           aria-label={isConnected ? "End conversation with VIC" : "Tap to speak with VIC about London"}
         >
+          {/* Animated border ring */}
+          <div
+            className={`absolute inset-0 rounded-full ${
+              isPlaying
+                ? 'animate-[spin_3s_linear_infinite]'
+                : 'animate-[spin_8s_linear_infinite]'
+            }`}
+            style={{
+              background: isPlaying
+                ? 'conic-gradient(from 0deg, #fbbf24, #f59e0b, #d97706, #fbbf24)'
+                : isConnected
+                ? 'conic-gradient(from 0deg, #22c55e, #16a34a, #15803d, #22c55e)'
+                : 'conic-gradient(from 0deg, #dc2626, #ef4444, #f97316, #dc2626)',
+              padding: '4px',
+              transform: 'scale(1.02)',
+            }}
+          >
+            <div className="w-full h-full rounded-full bg-stone-50" />
+          </div>
+
           <div className={`relative w-56 h-56 md:w-64 md:h-64 lg:w-72 lg:h-72 rounded-full overflow-hidden transition-all duration-300 ${
             isConnected
-              ? 'shadow-2xl ring-4 ring-green-500/50'
+              ? 'shadow-2xl'
               : isPlaying
-              ? 'shadow-2xl ring-4 ring-amber-400/50'
+              ? 'shadow-2xl'
               : 'shadow-xl group-hover:shadow-2xl group-hover:scale-105'
           }`}
             style={{
-              border: isConnected ? '4px solid #22c55e' : isPlaying ? '4px solid #fbbf24' : '4px solid #dc2626',
+              border: '4px solid transparent',
             }}
           >
-            {/* VIC Avatar Image */}
+            {/* VIC Avatar Image with animations */}
             <img
               src="/vic-avatar.jpg"
               alt="VIC - Your London History Guide"
-              className={`w-full h-full object-cover transition-transform ${
-                isPlaying ? 'animate-[pulse_1s_ease-in-out_infinite] scale-105' : ''
-              }`}
+              className="w-full h-full object-cover transition-all duration-300"
+              style={{
+                transform: isPlaying ? 'scale(1.05)' : 'scale(1)',
+                filter: isPlaying
+                  ? 'brightness(1.1) contrast(1.05)'
+                  : isConnected
+                  ? 'brightness(1.05)'
+                  : 'brightness(1)',
+                animation: isPlaying
+                  ? 'vicSpeaking 0.8s ease-in-out infinite'
+                  : !isConnected && !isConnecting
+                  ? 'vicIdle 4s ease-in-out infinite'
+                  : 'none',
+              }}
             />
+
+            {/* Speaking overlay effect - sound waves */}
+            {isPlaying && (
+              <div className="absolute inset-0 pointer-events-none">
+                {/* Pulsing overlay */}
+                <div
+                  className="absolute inset-0 bg-gradient-to-t from-amber-500/20 to-transparent animate-pulse"
+                />
+                {/* Sound wave rings */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute w-full h-full rounded-full border-2 border-amber-400/40 animate-[ping_1s_ease-out_infinite]" />
+                  <div className="absolute w-full h-full rounded-full border-2 border-amber-400/30 animate-[ping_1s_ease-out_infinite_0.3s]" />
+                  <div className="absolute w-full h-full rounded-full border-2 border-amber-400/20 animate-[ping_1s_ease-out_infinite_0.6s]" />
+                </div>
+              </div>
+            )}
 
             {/* Overlay with name when not connected */}
             {!isConnected && !isPlaying && (
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col items-center justify-end pb-6">
-                <span className="text-white font-serif font-bold text-2xl tracking-wider drop-shadow-lg">VIC</span>
+                <span className="text-white font-serif font-bold text-2xl tracking-wider drop-shadow-lg animate-pulse">VIC</span>
                 <span className="text-white/70 text-sm italic">Tap to speak</span>
+              </div>
+            )}
+
+            {/* Listening indicator when connected but not speaking */}
+            {isConnected && !isPlaying && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/60 px-3 py-1 rounded-full">
+                  <span className="text-white text-xs flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    Listening...
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -387,6 +446,38 @@ Remember: Your listeners are here because they WANT to hear these stories in ful
             </div>
           )}
         </button>
+
+        {/* CSS Keyframes for custom animations */}
+        <style jsx>{`
+          @keyframes vicSpeaking {
+            0%, 100% {
+              transform: scale(1.05);
+              filter: brightness(1.1) contrast(1.05);
+            }
+            25% {
+              transform: scale(1.07) translateY(-1px);
+              filter: brightness(1.15) contrast(1.08);
+            }
+            50% {
+              transform: scale(1.05);
+              filter: brightness(1.1) contrast(1.05);
+            }
+            75% {
+              transform: scale(1.06) translateY(1px);
+              filter: brightness(1.12) contrast(1.06);
+            }
+          }
+          @keyframes vicIdle {
+            0%, 100% {
+              transform: scale(1);
+              filter: brightness(1);
+            }
+            50% {
+              transform: scale(1.02);
+              filter: brightness(1.05);
+            }
+          }
+        `}</style>
       </div>
 
       {/* Connect/Disconnect Button - with glow */}
