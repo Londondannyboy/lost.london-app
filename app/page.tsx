@@ -13,35 +13,43 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-stone-50 text-black">
       {/* Navigation Header */}
       <Header />
 
-      {/* Newspaper Masthead */}
-      <header className="border-b-4 border-black bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-6">
+      {/* Colorful Banner with Book Cover */}
+      <header className="relative overflow-hidden">
+        <div className="absolute inset-0">
+          <img
+            src="/lost-london-cover-1.jpg"
+            alt="Lost London"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
+        </div>
+        <div className="relative z-10 max-w-6xl mx-auto px-4 py-12 md:py-16">
           <div className="text-center">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-black text-black tracking-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-serif font-black text-white tracking-tight drop-shadow-lg">
               Lost London
             </h1>
-            <p className="text-sm md:text-base text-gray-600 mt-2 font-serif italic">
+            <p className="text-base md:text-lg text-white/90 mt-3 font-serif italic drop-shadow">
               372 articles exploring the hidden history of the capital
             </p>
-            <p className="text-xs text-gray-500 mt-3">By Vic Keegan</p>
+            <p className="text-sm text-white/70 mt-2">By Vic Keegan</p>
           </div>
         </div>
       </header>
 
-      {/* Hero with Background Image */}
+      {/* Voice Widget with Map Background */}
       <section className="relative">
         <div className="absolute inset-0 z-0">
           <img
-            src="/lost-london-cover-1.jpg"
-            alt="Lost London"
-            className="w-full h-full object-cover opacity-30"
+            src="/Map of London.jpg"
+            alt="Map of London"
+            className="w-full h-full object-cover opacity-10"
           />
         </div>
-        <div className="relative z-10 max-w-4xl mx-auto px-4 py-16 md:py-24">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 py-12 md:py-16">
           <VoiceWidget />
         </div>
       </section>
