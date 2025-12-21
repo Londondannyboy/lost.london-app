@@ -22,11 +22,7 @@ export default function HomePage() {
             <p className="text-sm md:text-base text-gray-600 mt-2 font-serif italic">
               372 articles exploring the hidden history of the capital
             </p>
-            <div className="flex items-center justify-center gap-4 mt-3 text-xs text-gray-500">
-              <span>By Vic Keegan</span>
-              <span className="text-gray-300">|</span>
-              <span>Est. 2012</span>
-            </div>
+            <p className="text-xs text-gray-500 mt-3">By Vic Keegan</p>
           </div>
         </div>
       </header>

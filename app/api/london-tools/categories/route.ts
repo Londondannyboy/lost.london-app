@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
         articles: articles.map((a: any) => ({
           id: a.id,
           title: a.title,
+          slug: a.slug,
           author: a.author,
           excerpt: a.excerpt?.substring(0, 200) + (a.excerpt?.length > 200 ? '...' : ''),
           url: a.url,
