@@ -24,8 +24,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen flex flex-col">
-        <NeonAuthUIProvider authClient={authClient} redirectTo="/">
+      <body className="antialiased min-h-screen flex flex-col bg-stone-50 text-gray-900">
+        <NeonAuthUIProvider
+          authClient={authClient}
+          redirectTo="/"
+          social={{ providers: ['google', 'github'] }}
+        >
           {children}
         </NeonAuthUIProvider>
       </body>

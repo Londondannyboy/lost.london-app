@@ -11,15 +11,15 @@ export default async function SeriesPage() {
   const series = await getAllSeries()
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-stone-50">
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-serif text-gradient-london mb-4">
+        <div className="mb-12">
+          <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">
             Article Series
           </h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <p className="text-gray-600 max-w-2xl">
             Dive deep into London&apos;s history with our curated article series.
             Each series explores a specific theme through multiple connected stories.
           </p>
@@ -31,16 +31,16 @@ export default async function SeriesPage() {
               <Link
                 key={s.id}
                 href={`/series/${s.slug}`}
-                className="article-card p-6 block group"
+                className="bg-white border border-gray-200 rounded-lg p-6 block group hover:shadow-lg hover:border-red-200 transition-all"
               >
-                <h2 className="font-serif text-xl text-white group-hover:text-gold-400 transition-colors mb-2">
+                <h2 className="font-serif text-xl text-gray-900 group-hover:text-red-700 transition-colors mb-2">
                   {s.name}
                 </h2>
-                <p className="text-sm text-gold-400 mb-3">
+                <p className="text-sm text-red-700 mb-3">
                   {s.article_count} articles
                 </p>
                 {s.description && (
-                  <p className="text-gray-400 text-sm line-clamp-3">
+                  <p className="text-gray-600 text-sm line-clamp-3">
                     {s.description}
                   </p>
                 )}
@@ -48,14 +48,14 @@ export default async function SeriesPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16">
+          <div className="text-center py-16 bg-white rounded-lg border border-gray-200">
             <div className="text-6xl mb-4">📚</div>
-            <h2 className="text-xl font-serif text-white mb-2">Series Coming Soon</h2>
-            <p className="text-gray-400 mb-6 max-w-md mx-auto">
+            <h2 className="text-xl font-serif text-gray-900 mb-2">Series Coming Soon</h2>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
               We&apos;re organizing articles into thematic series for easier exploration.
               Check back soon or browse individual articles.
             </p>
-            <Link href="/surprise" className="btn-london">
+            <Link href="/surprise" className="inline-block bg-red-700 text-white px-6 py-2 rounded hover:bg-red-800 transition-colors">
               Discover Articles
             </Link>
           </div>

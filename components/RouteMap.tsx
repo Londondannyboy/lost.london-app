@@ -46,8 +46,8 @@ export function RouteMap({ stops }: RouteMapProps) {
 
   if (!mounted) {
     return (
-      <div className="w-full h-full bg-london-900 flex items-center justify-center">
-        <div className="text-gray-400">Loading map...</div>
+      <div className="w-full h-full bg-stone-100 flex items-center justify-center">
+        <div className="text-gray-500">Loading map...</div>
       </div>
     )
   }
@@ -57,8 +57,8 @@ export function RouteMap({ stops }: RouteMapProps) {
 
   if (validStops.length === 0) {
     return (
-      <div className="w-full h-full bg-london-900 flex items-center justify-center">
-        <div className="text-gray-400">No location data available</div>
+      <div className="w-full h-full bg-stone-100 flex items-center justify-center">
+        <div className="text-gray-500">No location data available</div>
       </div>
     )
   }
@@ -75,19 +75,19 @@ export function RouteMap({ stops }: RouteMapProps) {
       center={center}
       zoom={14}
       className="w-full h-full"
-      style={{ background: '#0a0e14' }}
+      style={{ background: '#f5f5f4' }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
 
       {/* Route line */}
       <Polyline
         positions={positions}
-        color="#d4a50a"
+        color="#b91c1c"
         weight={3}
-        opacity={0.7}
+        opacity={0.8}
         dashArray="10, 10"
       />
 

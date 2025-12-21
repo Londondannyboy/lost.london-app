@@ -5,8 +5,8 @@ import dynamic from 'next/dynamic'
 const RouteMap = dynamic(() => import('@/components/RouteMap').then(mod => mod.RouteMap), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full bg-london-900 rounded-lg flex items-center justify-center">
-      <div className="text-gray-400">Loading map...</div>
+    <div className="w-full h-full bg-stone-100 rounded-lg flex items-center justify-center">
+      <div className="text-gray-500">Loading map...</div>
     </div>
   )
 })

@@ -27,7 +27,7 @@ export default async function MapPage({
     : undefined
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-stone-50">
       <Header />
       <MapPageClient
         articles={articles}

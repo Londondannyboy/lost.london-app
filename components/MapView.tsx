@@ -78,8 +78,8 @@ export function MapView({ articles, selectedEra, selectedBorough, focusCenter }:
 
   if (!mounted) {
     return (
-      <div className="w-full h-full bg-london-900 flex items-center justify-center">
-        <div className="text-gray-400">Loading map...</div>
+      <div className="w-full h-full bg-stone-100 flex items-center justify-center">
+        <div className="text-gray-500">Loading map...</div>
       </div>
     )
   }
@@ -90,11 +90,11 @@ export function MapView({ articles, selectedEra, selectedBorough, focusCenter }:
         center={center}
         zoom={zoom}
         className="w-full h-full"
-        style={{ background: '#0a0e14' }}
+        style={{ background: '#f5f5f4' }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
         <MapController center={center} zoom={zoom} />
 
@@ -142,30 +142,30 @@ export function MapView({ articles, selectedEra, selectedBorough, focusCenter }:
       </MapContainer>
 
       {/* Article count badge */}
-      <div className="absolute top-4 left-4 z-[1000] bg-surface/90 backdrop-blur border border-london-700 rounded-lg px-3 py-2">
-        <span className="text-sm text-gray-300">
-          <span className="font-bold text-gold-400">{filteredArticles.length}</span> locations
+      <div className="absolute top-4 left-4 z-[1000] bg-white/95 backdrop-blur border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
+        <span className="text-sm text-gray-700">
+          <span className="font-bold text-red-700">{filteredArticles.length}</span> locations
         </span>
       </div>
 
       {/* Selected article panel (mobile) */}
       {selectedArticle && (
         <div className="absolute bottom-4 left-4 right-4 z-[1000] md:hidden">
-          <div className="bg-surface/95 backdrop-blur border border-london-700 rounded-lg p-4">
+          <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-lg p-4 shadow-lg">
             <button
               onClick={() => setSelectedArticle(null)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-white"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-900"
             >
               ✕
             </button>
-            <h3 className="font-serif font-bold text-white pr-6">{selectedArticle.title}</h3>
+            <h3 className="font-serif font-bold text-gray-900 pr-6">{selectedArticle.title}</h3>
             {selectedArticle.location_name && (
-              <p className="text-sm text-gray-400 mt-1">{selectedArticle.location_name}</p>
+              <p className="text-sm text-gray-500 mt-1">{selectedArticle.location_name}</p>
             )}
-            <p className="text-sm text-gray-300 mt-2 line-clamp-2">{selectedArticle.excerpt}</p>
+            <p className="text-sm text-gray-600 mt-2 line-clamp-2">{selectedArticle.excerpt}</p>
             <Link
               href={`/article/${selectedArticle.slug}`}
-              className="inline-block mt-3 text-sm font-medium text-london-400 hover:text-london-300"
+              className="inline-block mt-3 text-sm font-medium text-red-700 hover:text-red-800"
             >
               Read full article →
             </Link>

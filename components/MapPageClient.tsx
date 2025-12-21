@@ -37,19 +37,19 @@ export function MapPageClient({ articles, selectedEra, selectedBorough, eras, bo
   return (
     <div className="flex-1 flex flex-col md:flex-row">
       {/* Filters Sidebar */}
-      <aside className="w-full md:w-64 bg-surface border-b md:border-b-0 md:border-r border-london-800 p-4">
-        <h2 className="font-serif text-lg text-white mb-4">Filter Locations</h2>
+      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4">
+        <h2 className="font-serif text-lg text-gray-900 mb-4">Filter Locations</h2>
 
         {/* Era Filter */}
         <div className="mb-6">
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Historical Era</h3>
+          <h3 className="text-sm font-medium text-gray-600 mb-2">Historical Era</h3>
           <div className="flex flex-wrap gap-2">
             <a
               href="/map"
               className={`px-3 py-1 text-sm rounded-full border transition-colors ${
                 !selectedEra
-                  ? 'bg-london-600 border-london-500 text-white'
-                  : 'border-london-700 text-gray-400 hover:border-london-500 hover:text-white'
+                  ? 'bg-red-700 border-red-700 text-white'
+                  : 'border-gray-300 text-gray-600 hover:border-red-700 hover:text-red-700'
               }`}
             >
               All
@@ -60,8 +60,8 @@ export function MapPageClient({ articles, selectedEra, selectedBorough, eras, bo
                 href={`/map?era=${era}${selectedBorough ? `&borough=${selectedBorough}` : ''}`}
                 className={`px-3 py-1 text-sm rounded-full border transition-colors ${
                   selectedEra === era
-                    ? 'bg-london-600 border-london-500 text-white'
-                    : 'border-london-700 text-gray-400 hover:border-london-500 hover:text-white'
+                    ? 'bg-red-700 border-red-700 text-white'
+                    : 'border-gray-300 text-gray-600 hover:border-red-700 hover:text-red-700'
                 }`}
               >
                 {era}
@@ -72,7 +72,7 @@ export function MapPageClient({ articles, selectedEra, selectedBorough, eras, bo
 
         {/* Borough Filter */}
         <div>
-          <h3 className="text-sm font-medium text-gray-400 mb-2">Borough</h3>
+          <h3 className="text-sm font-medium text-gray-600 mb-2">Borough</h3>
           <select
             defaultValue={selectedBorough || ''}
             onChange={(e) => {
@@ -85,7 +85,7 @@ export function MapPageClient({ articles, selectedEra, selectedBorough, eras, bo
               }
               window.location.href = url.toString()
             }}
-            className="w-full bg-london-800 border border-london-700 text-gray-300 rounded-lg px-3 py-2 text-sm focus:border-london-500 focus:outline-none"
+            className="w-full bg-white border border-gray-300 text-gray-700 rounded-lg px-3 py-2 text-sm focus:border-red-700 focus:outline-none"
           >
             <option value="">All Boroughs</option>
             {boroughs.map(borough => (
@@ -95,9 +95,9 @@ export function MapPageClient({ articles, selectedEra, selectedBorough, eras, bo
         </div>
 
         {/* Stats */}
-        <div className="mt-6 pt-6 border-t border-london-800">
+        <div className="mt-6 pt-6 border-t border-gray-200">
           <p className="text-sm text-gray-500">
-            Showing <span className="text-gold-400 font-medium">{articles.length}</span> mapped locations
+            Showing <span className="text-red-700 font-medium">{articles.length}</span> mapped locations
           </p>
         </div>
       </aside>
