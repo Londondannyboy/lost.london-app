@@ -13,9 +13,7 @@ export function Header() {
   const navLinks = [
     { href: '/', label: 'Talk to VIC' },
     { href: '/series/lost-london', label: 'Articles' },
-    { href: '/map', label: 'Map' },
     { href: '/timeline', label: 'Timeline' },
-    { href: '/routes', label: 'Routes' },
     { href: '/surprise', label: 'Surprise Me' },
   ]
 
