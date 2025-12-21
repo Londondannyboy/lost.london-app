@@ -7,6 +7,44 @@ const sql = neon(process.env.DATABASE_URL!)
 
 async function scrapeArticleContent(url: string): Promise<{ content: string; image: string | null }> {
   try {
+    // Use curl for onlondon (more reliable)
+    if (url.includes('onlondon')) {
+      const { execSync } = await import('child_process')
+      const html = execSync(`curl -s "${url}"`, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 })
+
+      // Extract content from onlondon articles
+      const contentMatch = html.match(/<div[^>]*class="[^"]*(?:entry-content|article-content|post-content)[^"]*"[^>]*>([\s\S]*?)<\/div>\s*(?:<div|<footer|<aside|<\/article)/i)
+      let content = ''
+
+      if (contentMatch) {
+        content = contentMatch[1]
+          .replace(/<\/p>/gi, '\n\n')
+          .replace(/<br\s*\/?>/gi, '\n')
+          .replace(/<[^>]+>/g, '')
+          .replace(/\n{3,}/g, '\n\n')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#8217;/g, "'")
+          .replace(/&#8216;/g, "'")
+          .replace(/&#8220;/g, '"')
+          .replace(/&#8221;/g, '"')
+          .replace(/&#8211;/g, '–')
+          .replace(/&#8212;/g, '—')
+          .replace(/&#039;/g, "'")
+          .trim()
+      }
+
+      // Image for onlondon
+      const imageMatch = html.match(/https:\/\/www\.onlondon\.co\.uk\/wp-content\/uploads\/\d+\/\d+\/[^"' ]+\.(?:jpg|jpeg|png)/i)
+      const image = imageMatch ? imageMatch[0].replace(/-\d+x\d+\./, '.') : null
+
+      return { content, image }
+    }
+
+    // Original fetch for londonmylondon
     const response = await fetch(url)
     const html = await response.text()
 
@@ -50,12 +88,11 @@ async function scrapeArticleContent(url: string): Promise<{ content: string; ima
 async function main() {
   console.log('Finding articles with thin content...')
 
-  // Get articles with less than 1000 characters of content from londonmylondon
+  // Get articles with less than 1000 characters of content
   const articles = await sql`
     SELECT id, title, url, LENGTH(content) as content_length, featured_image_url
     FROM articles
     WHERE LENGTH(content) < 1000
-      AND url LIKE '%londonmylondon%'
       AND title != 'Multiple Choices'
     ORDER BY content_length ASC
   `
