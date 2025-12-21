@@ -66,12 +66,15 @@ export function Header() {
                 >
                   Bookmarks
                 </Link>
-                <Link
-                  href="/auth/sign-out"
+                <button
+                  onClick={async () => {
+                    await authClient.signOut()
+                    window.location.href = '/'
+                  }}
                   className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
                 >
                   Sign Out
-                </Link>
+                </button>
                 {session.user.image ? (
                   <img
                     src={session.user.image}
@@ -167,13 +170,16 @@ export function Header() {
                     </Link>
                     <div className="px-4 py-3 flex items-center justify-between">
                       <span className="text-sm text-gray-300">{session.user.email}</span>
-                      <Link
-                        href="/auth/sign-out"
+                      <button
+                        onClick={async () => {
+                          setMenuOpen(false)
+                          await authClient.signOut()
+                          window.location.href = '/'
+                        }}
                         className="text-sm text-red-400 hover:text-red-300"
-                        onClick={() => setMenuOpen(false)}
                       >
                         Sign Out
-                      </Link>
+                      </button>
                     </div>
                   </>
                 ) : (
