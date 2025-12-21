@@ -13,9 +13,7 @@ export function Header() {
   const navLinks = [
     { href: '/', label: 'Talk to VIC' },
     { href: '/series/lost-london', label: 'Articles' },
-    { href: '/map', label: 'Map' },
     { href: '/timeline', label: 'Timeline' },
-    { href: '/routes', label: 'Routes' },
     { href: '/surprise', label: 'Surprise Me' },
   ]
 
@@ -43,20 +41,20 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/bookmarks"
-              className={`px-3 py-2 text-sm transition-colors ${
-                pathname === '/bookmarks'
-                  ? 'text-white bg-white/10'
-                  : 'text-gray-300 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              Bookmarks
-            </Link>
 
             {/* Auth - Sign In / User Menu */}
             {session?.user ? (
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/20">
+                <Link
+                  href="/bookmarks"
+                  className={`px-3 py-2 text-sm transition-colors ${
+                    pathname === '/bookmarks'
+                      ? 'text-white bg-white/10'
+                      : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  Bookmarks
+                </Link>
                 <Link
                   href="/auth/sign-out"
                   className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
@@ -129,31 +127,33 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="/bookmarks"
-                className={`px-4 py-3 text-base ${
-                  pathname === '/bookmarks'
-                    ? 'text-white bg-white/10'
-                    : 'text-gray-300 hover:text-white hover:bg-white/5'
-                }`}
-                onClick={() => setMenuOpen(false)}
-              >
-                Bookmarks
-              </Link>
 
               {/* Mobile Auth */}
               <div className="border-t border-white/20 mt-2 pt-2">
                 {session?.user ? (
-                  <div className="px-4 py-3 flex items-center justify-between">
-                    <span className="text-sm text-gray-300">{session.user.email}</span>
+                  <>
                     <Link
-                      href="/auth/sign-out"
-                      className="text-sm text-red-400 hover:text-red-300"
+                      href="/bookmarks"
+                      className={`block px-4 py-3 text-base ${
+                        pathname === '/bookmarks'
+                          ? 'text-white bg-white/10'
+                          : 'text-gray-300 hover:text-white hover:bg-white/5'
+                      }`}
                       onClick={() => setMenuOpen(false)}
                     >
-                      Sign Out
+                      My Bookmarks
                     </Link>
-                  </div>
+                    <div className="px-4 py-3 flex items-center justify-between">
+                      <span className="text-sm text-gray-300">{session.user.email}</span>
+                      <Link
+                        href="/auth/sign-out"
+                        className="text-sm text-red-400 hover:text-red-300"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Sign Out
+                      </Link>
+                    </div>
+                  </>
                 ) : (
                   <div className="flex gap-2 px-4 py-3">
                     <Link

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Header } from '@/components/Header'
 import { useBookmarks } from '@/hooks/useBookmarks'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 interface Article {
   id: number
@@ -15,9 +16,17 @@ interface Article {
 }
 
 export default function BookmarksPage() {
+  const router = useRouter()
   const { bookmarks, loading: bookmarksLoading, removeBookmark, isLoggedIn } = useBookmarks()
   const [articles, setArticles] = useState<Article[]>([])
   const [loading, setLoading] = useState(true)
+
+  // Redirect to sign-in if not logged in
+  useEffect(() => {
+    if (!bookmarksLoading && !isLoggedIn) {
+      router.push('/auth/sign-in')
+    }
+  }, [bookmarksLoading, isLoggedIn, router])
 
   useEffect(() => {
     if (!bookmarksLoading && bookmarks.length > 0) {
@@ -45,6 +54,20 @@ export default function BookmarksPage() {
     }
   }
 
+  // Show loading while checking auth
+  if (bookmarksLoading || !isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-stone-50">
+        <Header />
+        <main className="max-w-4xl mx-auto px-4 py-8">
+          <div className="text-center py-16">
+            <div className="text-gray-500">Loading...</div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-stone-50">
       <Header />
@@ -55,15 +78,11 @@ export default function BookmarksPage() {
             My Bookmarks
           </h1>
           <p className="text-gray-600">
-            {isLoggedIn ? (
-              'Your saved articles, synced across all your devices.'
-            ) : (
-              'Your saved articles. Sign in to sync across devices.'
-            )}
+            Your saved articles, synced across all your devices.
           </p>
         </div>
 
-        {loading || bookmarksLoading ? (
+        {loading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
               <div key={i} className="bg-white border border-gray-200 rounded-lg p-4 animate-pulse">
@@ -123,24 +142,8 @@ export default function BookmarksPage() {
             <p className="text-gray-600 mb-6">
               Start exploring and save articles you want to read later.
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link href="/surprise" className="inline-block bg-red-700 text-white px-6 py-2 rounded hover:bg-red-800 transition-colors">
-                Surprise Me
-              </Link>
-              <Link href="/map" className="text-gray-600 hover:text-gray-900 py-2">
-                Explore Map
-              </Link>
-            </div>
-          </div>
-        )}
-
-        {!isLoggedIn && articles.length > 0 && (
-          <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg text-center">
-            <p className="text-gray-700 mb-3">
-              Sign in to sync your bookmarks across all your devices
-            </p>
-            <Link href="/auth/sign-in" className="text-blue-700 hover:text-blue-800 font-medium">
-              Sign in →
+            <Link href="/surprise" className="inline-block bg-red-700 text-white px-6 py-2 rounded hover:bg-red-800 transition-colors">
+              Surprise Me
             </Link>
           </div>
         )}
