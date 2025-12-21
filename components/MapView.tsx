@@ -1,22 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import Link from 'next/link'
-
-// Fix for default markers in Leaflet with Next.js
-const DefaultIcon = L.icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-})
-
-L.Marker.prototype.options.icon = DefaultIcon
 
 interface Article {
   id: number
@@ -49,6 +36,24 @@ function MapController({ center, zoom }: { center: [number, number]; zoom: numbe
 export function MapView({ articles, selectedEra, selectedBorough, focusCenter }: MapViewProps) {
   const [mounted, setMounted] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null)
+  const iconSetup = useRef(false)
+
+  // Setup Leaflet icon on mount (client-side only)
+  useEffect(() => {
+    if (!iconSetup.current && typeof window !== 'undefined') {
+      const DefaultIcon = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+      })
+      L.Marker.prototype.options.icon = DefaultIcon
+      iconSetup.current = true
+    }
+  }, [])
 
   // Filter articles - only include those with valid coordinates
   const filteredArticles = articles.filter(article => {
