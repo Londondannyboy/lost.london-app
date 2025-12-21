@@ -10,13 +10,30 @@ async function extractImageFromPage(url: string): Promise<string | null> {
     const response = await fetch(url)
     const html = await response.text()
 
-    // Try to find first content image (full size, not thumbnail)
-    const match = html.match(/https:\/\/www\.londonmylondon\.co\.uk\/wp-content\/uploads\/\d+\/\d+\/[^"' ]+\.(?:jpg|jpeg|png)/i)
-    if (match) {
-      // Filter out thumbnails (those with -NxN dimensions)
-      const fullSizeUrl = match[0].replace(/-\d+x\d+\./, '.')
-      return fullSizeUrl
+    // Try og:image first
+    const ogMatch = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i)
+    if (ogMatch && !ogMatch[1].includes('holder') && !ogMatch[1].includes('penci')) {
+      return ogMatch[1]
     }
+
+    // Try to find content images from onlondon or londonmylondon
+    const patterns = [
+      /https:\/\/www\.onlondon\.co\.uk\/wp-content\/uploads\/\d+\/\d+\/[^"' >]+\.(?:jpg|jpeg|png)/gi,
+      /https:\/\/www\.londonmylondon\.co\.uk\/wp-content\/uploads\/\d+\/\d+\/[^"' >]+\.(?:jpg|jpeg|png)/gi
+    ]
+
+    for (const pattern of patterns) {
+      const matches = html.match(pattern)
+      if (matches) {
+        for (const match of matches) {
+          // Skip placeholders and logos
+          if (!match.includes('holder') && !match.includes('penci') && !match.includes('logo')) {
+            return match.replace(/-\d+x\d+\./, '.')
+          }
+        }
+      }
+    }
+
     return null
   } catch (error) {
     console.error(`Failed to fetch ${url}:`, error)
@@ -25,24 +42,27 @@ async function extractImageFromPage(url: string): Promise<string | null> {
 }
 
 async function main() {
-  console.log('Fetching articles without images...')
+  console.log('Fetching articles with placeholder or missing images...\n')
 
+  // Find articles with placeholder images OR missing images
   const articles = await sql`
-    SELECT id, title, url
+    SELECT id, title, url, featured_image_url
     FROM articles
-    WHERE (featured_image_url IS NULL OR featured_image_url = '')
-      AND url LIKE '%londonmylondon%'
+    WHERE (
+      featured_image_url IS NULL
+      OR featured_image_url = ''
+      OR featured_image_url LIKE '%holder%'
+      OR featured_image_url LIKE '%penci%'
+    )
     ORDER BY id
   `
 
-  console.log(`Found ${articles.length} articles without images`)
+  console.log(`Found ${articles.length} articles to fix\n`)
 
   let updated = 0
   let failed = 0
 
   for (const article of articles) {
-    console.log(`Processing: ${article.title}`)
-
     const imageUrl = await extractImageFromPage(article.url)
 
     if (imageUrl) {
@@ -51,18 +71,17 @@ async function main() {
         SET featured_image_url = ${imageUrl}
         WHERE id = ${article.id}
       `
-      console.log(`  ✓ Updated with image: ${imageUrl}`)
+      console.log(`✓ ${article.title.substring(0, 50)}`)
       updated++
     } else {
-      console.log(`  ✗ No image found`)
+      console.log(`✗ ${article.title.substring(0, 50)}`)
       failed++
     }
 
-    // Small delay to be respectful
     await new Promise(r => setTimeout(r, 200))
   }
 
-  console.log(`\nDone! Updated: ${updated}, No image found: ${failed}`)
+  console.log(`\nDone! Fixed: ${updated}, No image found: ${failed}`)
 }
 
 main().catch(console.error)
