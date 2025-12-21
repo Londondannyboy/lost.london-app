@@ -36,33 +36,33 @@ function ArticleCard({ article }: { article: Article }) {
   )
 }
 
-// Tool definitions for Hume - London articles
+// Tool definitions for Hume - London articles knowledge base
 const LONDON_TOOLS = [
   {
     type: 'function' as const,
     name: 'search_articles',
-    description: 'Search London articles by topic, place, or keyword. Use for questions about London history, hidden gems, walks, or specific locations.',
+    description: 'Search the knowledge base of 372 London history articles by topic, place, or keyword. Use this to find articles about London history, hidden gems, walks, or specific locations.',
     parameters: '{ "type": "object", "required": ["query"], "properties": { "query": { "type": "string", "description": "Search term like Thames, Shakespeare, medieval, Lambeth, etc" } } }',
-    fallback_content: 'Unable to search articles at the moment.',
+    fallback_content: 'Unable to search the knowledge base at the moment.',
   },
   {
     type: 'function' as const,
     name: 'get_article',
-    description: 'Get full details of a specific article by title',
+    description: 'Get full details of a specific article from the knowledge base by title',
     parameters: '{ "type": "object", "required": ["title"], "properties": { "title": { "type": "string", "description": "Article title or partial title" } } }',
     fallback_content: 'Unable to get article details at the moment.',
   },
   {
     type: 'function' as const,
     name: 'browse_categories',
-    description: 'Browse articles by category or list all categories. Categories include: Hidden, gems, City, Art, archeology, Shakespeare, Poems, St James Park',
+    description: 'Browse the knowledge base by category or list all categories. Categories include: Hidden gems, City, Art, archaeology, Shakespeare, Poems, St James Park',
     parameters: '{ "type": "object", "properties": { "category": { "type": "string", "description": "Category name to browse, or leave empty to list all categories" } } }',
     fallback_content: 'Unable to browse categories at the moment.',
   },
   {
     type: 'function' as const,
     name: 'random_discovery',
-    description: 'Get a random London article for serendipitous discovery. Use when user wants to explore or be surprised.',
+    description: 'Get a random article from the knowledge base for serendipitous discovery. Use when user wants to explore or be surprised.',
     parameters: '{ "type": "object", "properties": {} }',
     fallback_content: 'Unable to get random article at the moment.',
   },
@@ -194,9 +194,10 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
     const sessionSettings = {
       type: 'session_settings' as const,
       variables: {
-        persona: 'VIC',
+        persona: 'VIC (pronounced "Fik", named after Vic Keegan)',
         expertise: 'London history, hidden gems, walks, and cultural heritage',
         article_count: '372',
+        pronunciation_note: 'VIC is pronounced "Fik" - it stands for Virtual Interactive Companion and is named after author Vic Keegan',
       }
     }
 
@@ -289,8 +290,9 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
             {/* Overlay with name when not connected */}
             {!isConnected && (
-              <div className="absolute inset-0 bg-gradient-to-t from-london-950/80 via-transparent to-transparent flex items-end justify-center pb-6">
+              <div className="absolute inset-0 bg-gradient-to-t from-london-950/80 via-transparent to-transparent flex flex-col items-center justify-end pb-4">
                 <span className="text-white font-serif font-bold text-2xl tracking-wider">VIC</span>
+                <span className="text-london-300/70 text-xs italic">(pronounced "Fik")</span>
               </div>
             )}
 
@@ -338,7 +340,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M8 5v14l11-7z" />
             </svg>
-            Talk to VIC
+            Speak to VIC
           </>
         )}
       </button>
@@ -363,20 +365,29 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
         ))}
       </div>
 
-      {/* Status Text */}
-      <p className={`text-lg md:text-xl font-medium mb-4 text-center transition-all ${
-        isPlaying ? 'text-gold-300' : 'text-london-300'
-      }`}>
-        {isConnecting
-          ? "Connecting to VIC..."
-          : isPlaying
-          ? "VIC is speaking..."
-          : isConnected
-          ? "Ask me about London..."
-          : isError
-          ? "Connection lost — tap to reconnect"
-          : "Tap to discover London's secrets"}
-      </p>
+      {/* Status Text - clickable when not connected */}
+      {isConnected || isConnecting ? (
+        <p className={`text-lg md:text-xl font-medium mb-4 text-center transition-all ${
+          isPlaying ? 'text-gold-300' : 'text-london-300'
+        }`}>
+          {isConnecting
+            ? "Connecting to VIC..."
+            : isPlaying
+            ? "VIC is speaking..."
+            : "Ask me about London..."}
+        </p>
+      ) : (
+        <button
+          onClick={handleConnect}
+          className={`text-lg md:text-xl font-medium mb-4 text-center transition-all cursor-pointer hover:text-gold-400 ${
+            isError ? 'text-red-400' : 'text-london-300'
+          }`}
+        >
+          {isError
+            ? "Connection lost — tap to reconnect"
+            : "Tap to discover London's secrets"}
+        </button>
+      )}
 
       {/* Featured Article - appears when VIC finds one */}
       {isConnected && featuredArticle && (
