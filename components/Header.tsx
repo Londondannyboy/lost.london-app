@@ -71,7 +71,7 @@ export function Header() {
                     await authClient.signOut()
                     window.location.href = '/'
                   }}
-                  className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                  className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer relative z-50"
                 >
                   Sign Out
                 </button>
@@ -79,10 +79,10 @@ export function Header() {
                   <img
                     src={session.user.image}
                     alt={session.user.name || 'User'}
-                    className="w-7 h-7 rounded-full"
+                    className="w-7 h-7 rounded-full cursor-pointer relative z-50"
                   />
                 ) : (
-                  <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs">
+                  <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center text-xs cursor-pointer relative z-50">
                     {session.user.name?.[0] || session.user.email?.[0] || 'U'}
                   </div>
                 )}
