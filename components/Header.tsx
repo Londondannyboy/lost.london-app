@@ -28,7 +28,7 @@ export function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1 relative z-50">
             {navLinks.map(link => (
               <Link
                 key={link.href}
@@ -45,7 +45,7 @@ export function Header() {
 
             {/* Auth - Sign In / User Menu */}
             {session?.user ? (
-              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/20">
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/20 relative z-50 pointer-events-auto">
                 <Link
                   href="/my-london"
                   className={`px-3 py-2 text-sm transition-colors ${
