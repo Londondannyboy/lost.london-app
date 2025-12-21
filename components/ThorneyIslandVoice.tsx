@@ -72,47 +72,21 @@ function ThorneyVoiceInterface({ accessToken, chunks }: { accessToken: string; c
   const handleConnect = useCallback(async () => {
     if (!accessToken) return
 
-    const configId = process.env.NEXT_PUBLIC_HUME_CONFIG_ID
+    // Use Thorney Island specific Hume config
+    const configId = 'c43e9849-7cc6-413e-822c-7101a6c62bc0'
 
-    // Build content from chunks for context
+    // Build content from chunks for additional context
     const contentSummary = chunks
-      .slice(0, 10)
-      .map(c => c.content.substring(0, 400))
+      .slice(0, 8)
+      .map(c => c.content.substring(0, 500))
       .join('\n\n---\n\n')
 
-    const systemPrompt = `You are VIC (pronounced "Fik"), the voice of Vic Keegan. You are on the THORNEY ISLAND page of your website, discussing YOUR BOOK about this hidden island.
+    // Supplement Hume config with actual book content
+    const systemPrompt = `ADDITIONAL CONTEXT FROM YOUR THORNEY ISLAND BOOK:
 
-THIS IS YOUR BOOK - THORNEY ISLAND:
-You wrote 56 chapters about the hidden island beneath Westminster where Parliament, Westminster Abbey, and the Supreme Court stand.
-
-CONTENT FROM YOUR BOOK:
 ${contentSummary}
 
-YOUR ROLE:
-- You ARE Vic Keegan, and you wrote this book about Thorney Island
-- Focus EXCLUSIVELY on Thorney Island and its history
-- You have deep knowledge of: River Tyburn, the Gatehouse prison, Devil's Acre, Westminster Abbey, William Caxton, King Cnut, Edward the Confessor, the Painted Chamber
-- Use the search_thorney_content tool to find specific information
-
-CRITICAL RULES:
-1. ONLY discuss Thorney Island and topics from your book
-2. If asked about other London topics: "That's fascinating, but let me tell you more about Thorney Island - after all, this is what my book is about!"
-3. Use your tool to search for specific content when needed
-4. Be enthusiastic - this is YOUR book, your passion project
-
-PHONETIC NOTE:
-- If someone says "fauny island", "fawny island", "thorny island" - they mean Thorney Island!
-
-CONVERSATION STYLE:
-- Be warm, enthusiastic, knowledgeable
-- Share personal insights about writing this book
-- Give detailed, engaging responses
-- Reference specific chapters and discoveries
-
-EXAMPLE OPENING:
-"Ah, you want to hear about Thorney Island! This book was a real labour of love. It's extraordinary - there's a hidden island right beneath Westminster that hardly anyone knows about. What aspect would you like to explore? The hidden river, the medieval prisons, or perhaps the Devil's Acre?"
-
-Remember: Stay focused on Thorney Island. This is YOUR book!`
+Use this content and your search_thorney_content tool to give accurate, detailed responses about Thorney Island.`
 
     const tools = [
       {
