@@ -33,21 +33,24 @@ export default function HomePage() {
               Your AI Guide to London's Hidden Past
             </p>
             <p className="text-london-400/60 text-sm max-w-lg mx-auto">
-              By Vic Keegan — 139 articles exploring <strong>London history</strong>, hidden gems, and forgotten corners of the city
+              By Vic Keegan — 372 articles exploring <strong>London history</strong>, hidden gems, and forgotten corners of the city
             </p>
           </div>
 
-          {/* London History Hero Image */}
-          <div className="relative w-full max-w-3xl mx-auto mb-12 rounded-2xl overflow-hidden border border-london-700/50">
+          {/* Lost London Hero Image */}
+          <div className="relative w-full max-w-3xl mx-auto mb-12 rounded-2xl overflow-hidden border border-gold-500/30 shadow-[0_0_40px_rgba(212,165,10,0.15)]">
             <img
-              src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=1200&h=600&fit=crop"
-              alt="London history - Historic view of Tower Bridge and the Thames at sunset"
-              className="w-full aspect-video object-cover"
+              src="/lost-london-cover-1.jpg"
+              alt="Vic Keegan's Lost London - Exploring the hidden history of the capital"
+              className="w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-london-950/80 via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-london-950/90 via-london-950/20 to-transparent" />
             <div className="absolute bottom-4 left-4 right-4">
+              <p className="text-gold-400 text-xs font-semibold uppercase tracking-wider mb-1">
+                Vic Keegan's Lost London
+              </p>
               <p className="text-white/90 text-sm font-medium">
-                Discover 2,000 years of London history through voice
+                Discover 2,000 years of hidden history through voice
               </p>
             </div>
           </div>
@@ -166,6 +169,32 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Book Covers Gallery */}
+        <section className="py-16 bg-london-950/50 border-t border-london-800/30">
+          <div className="max-w-5xl mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-center mb-4 text-london-200">
+              Vic Keegan's Lost London
+            </h2>
+            <p className="text-london-400 text-center mb-12 max-w-xl mx-auto">
+              A treasure trove of London's hidden history, now available as beautifully illustrated books
+            </p>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="group relative rounded-xl overflow-hidden border border-london-700/30 hover:border-gold-500/50 transition-all hover:shadow-[0_0_30px_rgba(212,165,10,0.2)]">
+                <img src="/lost-london-cover-1.jpg" alt="Lost London Volume 1" className="w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="group relative rounded-xl overflow-hidden border border-london-700/30 hover:border-gold-500/50 transition-all hover:shadow-[0_0_30px_rgba(212,165,10,0.2)]">
+                <img src="/lost-london-cover-2.jpg" alt="Lost London Volume 2" className="w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="group relative rounded-xl overflow-hidden border border-london-700/30 hover:border-gold-500/50 transition-all hover:shadow-[0_0_30px_rgba(212,165,10,0.2)]">
+                <img src="/lost-london-cover-3.jpg" alt="Lost London Volume 3" className="w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* About Section */}
         <section className="py-16 bg-black border-t border-london-800/30">
           <div className="max-w-3xl mx-auto px-4 text-center">
@@ -173,12 +202,12 @@ export default function HomePage() {
               About Our London History Collection
             </h2>
             <p className="text-london-300/80 text-lg leading-relaxed mb-6">
-              This collection brings together 139 articles by Vic Keegan, a passionate explorer of <strong>London history</strong> and its hidden corners.
+              This collection brings together 372 articles by Vic Keegan, a passionate explorer of <strong>London history</strong> and its hidden corners.
               From Shakespeare's lost theatres to the source of the Thames, from medieval buildings to modern art —
               VIC is your voice-powered guide to discovering London history like never before.
             </p>
             <p className="text-london-400/60 text-sm">
-              Original articles from <a href="https://www.londonmylondon.co.uk" target="_blank" rel="noopener noreferrer" className="text-london-300 hover:text-gold-400 transition-colors">londonmylondon.co.uk</a>
+              Original articles from <a href="https://www.londonmylondon.co.uk" target="_blank" rel="noopener noreferrer" className="text-london-300 hover:text-gold-400 transition-colors">londonmylondon.co.uk</a> and <a href="https://www.onlondon.co.uk" target="_blank" rel="noopener noreferrer" className="text-london-300 hover:text-gold-400 transition-colors">onlondon.co.uk</a>
             </p>
           </div>
         </section>

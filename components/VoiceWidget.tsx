@@ -196,7 +196,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
       variables: {
         persona: 'VIC',
         expertise: 'London history, hidden gems, walks, and cultural heritage',
-        article_count: '139',
+        article_count: '372',
       }
     }
 
@@ -276,20 +276,23 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
           } transition-all duration-300`}
             style={{
               border: isConnected ? '3px solid rgba(212,165,10,0.8)' : '3px solid rgba(41,82,204,0.8)',
-              background: 'linear-gradient(135deg, #1e3a8a 0%, #0f1a38 100%)',
             }}
           >
-            {/* VIC Text Avatar */}
-            <div className={`absolute inset-0 flex flex-col items-center justify-center ${
-              isPlaying ? 'animate-[speaking-breathe_2s_ease-in-out_infinite]' : ''
-            }`}>
-              <span className="text-6xl md:text-7xl lg:text-8xl font-serif font-bold text-white tracking-wider">
-                VIC
-              </span>
-              <span className="text-sm md:text-base text-london-300 mt-2 tracking-widest uppercase">
-                London Guide
-              </span>
-            </div>
+            {/* VIC Avatar Image */}
+            <img
+              src="/vic-avatar.jpg"
+              alt="VIC - Your London History Guide"
+              className={`w-full h-full object-cover ${
+                isPlaying ? 'animate-[speaking-breathe_2s_ease-in-out_infinite]' : ''
+              }`}
+            />
+
+            {/* Overlay with name when not connected */}
+            {!isConnected && (
+              <div className="absolute inset-0 bg-gradient-to-t from-london-950/80 via-transparent to-transparent flex items-end justify-center pb-6">
+                <span className="text-white font-serif font-bold text-2xl tracking-wider">VIC</span>
+              </div>
+            )}
 
             {/* Speaking glow */}
             {isPlaying && (
@@ -387,7 +390,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
       {!isConnected && (
         <div className="text-center mb-8 space-y-3">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-london-900/50 rounded-full border border-london-700/50">
-            <span className="text-london-300 text-sm font-semibold">139 Articles</span>
+            <span className="text-london-300 text-sm font-semibold">372 Articles</span>
             <span className="text-london-600">•</span>
             <span className="text-london-400 text-sm">Hidden London</span>
             <span className="text-london-600">•</span>
