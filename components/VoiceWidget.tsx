@@ -350,17 +350,17 @@ Remember: Your listeners are here because they WANT to hear these stories in ful
       <button
         onClick={isConnected ? handleDisconnect : handleConnect}
         disabled={isConnecting}
-        className={`mb-4 px-6 py-2 rounded-full font-medium text-sm transition-all duration-300 flex items-center gap-2 ${
+        className={`mb-4 px-8 py-3 rounded-full font-semibold text-base transition-all duration-300 flex items-center gap-2 ${
           isConnected
-            ? 'bg-gold-500 text-black hover:bg-gold-400'
+            ? 'bg-gold-500 text-black hover:bg-gold-400 shadow-[0_0_20px_rgba(212,165,10,0.4)]'
             : isConnecting
-            ? 'bg-london-400/50 text-london-200 cursor-wait'
-            : 'bg-london-500 text-white hover:bg-london-400 hover:shadow-[0_0_20px_rgba(41,82,204,0.5)]'
+            ? 'bg-gold-400 text-black cursor-wait shadow-[0_0_15px_rgba(212,165,10,0.3)]'
+            : 'bg-gold-500 text-black hover:bg-gold-400 hover:shadow-[0_0_30px_rgba(212,165,10,0.6)] shadow-[0_0_15px_rgba(212,165,10,0.3)]'
         }`}
       >
         {isConnecting ? (
           <>
-            <div className="w-4 h-4 border-2 border-london-200 border-t-transparent rounded-full animate-spin" />
+            <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
             Connecting...
           </>
         ) : isConnected ? (
