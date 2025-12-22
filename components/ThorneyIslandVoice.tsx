@@ -27,9 +27,10 @@ function ThorneyVoiceInterface({ accessToken, chunks }: { accessToken: string; c
     const handleToolCall = async (toolCall: any) => {
       const { name, toolCallId, parameters } = toolCall
 
-      if (name === 'search_thorney_content') {
+      if (name === 'search_knowledge') {
         try {
-          const response = await fetch('/api/london-tools/thorney-island', {
+          // Use semantic search with pgvector embeddings
+          const response = await fetch('/api/london-tools/semantic-search', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(parameters || {}),
@@ -73,7 +74,7 @@ function ThorneyVoiceInterface({ accessToken, chunks }: { accessToken: string; c
     if (!accessToken) return
 
     // Use Thorney Island specific Hume config
-    const configId = 'c43e9849-7cc6-413e-822c-7101a6c62bc0'
+    const configId = '05e280de-8f00-4505-81e2-b25662a69a8d'
 
     // Build content from chunks for additional context
     const contentSummary = chunks
@@ -86,15 +87,15 @@ function ThorneyVoiceInterface({ accessToken, chunks }: { accessToken: string; c
 
 ${contentSummary}
 
-Use this content and your search_thorney_content tool to give accurate, detailed responses about Thorney Island.`
+Use this content and your search_knowledge tool to give accurate, detailed responses about Thorney Island. The search_knowledge tool searches your complete knowledge base including the Thorney Island book and all 372 London articles.`
 
     const tools = [
       {
         type: 'function' as const,
-        name: 'search_thorney_content',
-        description: 'Search your Thorney Island book for specific topics like Tyburn, Westminster, Caxton, etc.',
-        parameters: '{ "type": "object", "required": ["query"], "properties": { "query": { "type": "string", "description": "Topic to search for in your book" } } }',
-        fallback_content: 'Unable to search the book at the moment.',
+        name: 'search_knowledge',
+        description: 'Search the complete London knowledge base including the Thorney Island book AND 372 London articles. Use this for any topic: Tyburn, Westminster Abbey, Devil\'s Acre, Royal Aquarium, Scotland Yard, etc.',
+        parameters: '{ "type": "object", "required": ["query"], "properties": { "query": { "type": "string", "description": "Search term like Tyburn, Westminster, aquarium, Scotland Yard, etc" } } }',
+        fallback_content: 'Unable to search the knowledge base at the moment.',
       }
     ]
 
