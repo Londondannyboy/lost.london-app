@@ -12,10 +12,10 @@ interface Message {
 
 export interface UserProfile {
   isReturningUser: boolean
-  lastVisit?: string
-  topicsDiscussed?: string[]
-  conversationCount?: number
-  profile?: string
+  userName?: string
+  interests?: string[]
+  preferences?: string[]
+  memoryCount?: number
 }
 
 /**
@@ -143,22 +143,23 @@ export function generatePersonalizedGreeting(profile: UserProfile): string {
     return '' // Use default greeting
   }
 
-  const greetings = [
-    "Welcome back! ",
-    "Good to see you again! ",
-    "Ah, you've returned! ",
-  ]
+  const name = profile.userName || ''
+  const nameGreeting = name ? `, ${name}` : ''
 
-  const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)]
-
-  if (profile.topicsDiscussed && profile.topicsDiscussed.length > 0) {
-    const lastTopic = profile.topicsDiscussed[profile.topicsDiscussed.length - 1]
-    return `${randomGreeting}Last time we talked about ${lastTopic}. Shall we continue, or explore something new?`
+  // Build greeting with name
+  if (name && profile.interests && profile.interests.length > 0) {
+    const interest = profile.interests[0]
+    return `Welcome back${nameGreeting}! Last time you were interested in ${interest}. Shall we continue exploring that, or discover something new?`
   }
 
-  if (profile.conversationCount && profile.conversationCount > 1) {
-    return `${randomGreeting}This is conversation number ${profile.conversationCount + 1}. What aspect of London's history shall we explore today?`
+  if (name) {
+    return `Welcome back${nameGreeting}! Lovely to hear from you again. What aspect of London's history shall we explore today?`
   }
 
-  return `${randomGreeting}What would you like to discover about London today?`
+  if (profile.interests && profile.interests.length > 0) {
+    const interest = profile.interests[0]
+    return `Welcome back! I remember you were interested in ${interest}. Shall we continue, or explore something new?`
+  }
+
+  return `Welcome back! What would you like to discover about London today?`
 }
