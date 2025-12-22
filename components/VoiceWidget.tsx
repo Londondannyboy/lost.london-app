@@ -6,6 +6,7 @@ import {
   getUserId,
   getUserProfile,
   storeConversation,
+  rememberAboutUser,
   generatePersonalizedGreeting,
   type UserProfile,
 } from '@/lib/supermemory'
@@ -73,6 +74,13 @@ const LONDON_TOOLS = [
     description: 'Get a random article from the knowledge base for serendipitous discovery. Use when user wants to explore or be surprised.',
     parameters: '{ "type": "object", "properties": {} }',
     fallback_content: 'Unable to get random article at the moment.',
+  },
+  {
+    type: 'function' as const,
+    name: 'remember_user',
+    description: 'Remember something important about the user for future conversations. Use this when the user tells you their name, mentions their interests, or shares something you should remember. Types: name for their name, interest for topics they like, preference for how they like things, general for other facts.',
+    parameters: `{ "type": "object", "required": ["memory", "type"], "properties": { "memory": { "type": "string", "description": "What to remember about the user" }, "type": { "type": "string", "enum": ["name", "interest", "preference", "general"], "description": "Category of memory" } } }`,
+    fallback_content: 'Unable to save memory at the moment.',
   },
 ]
 
@@ -175,6 +183,20 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
             }
             break
 
+          case 'remember_user':
+            // Store memory about the user
+            if (userId && parameters?.memory) {
+              const success = await rememberAboutUser(
+                userId,
+                parameters.memory,
+                parameters.type || 'general'
+              )
+              result = { success, message: success ? 'Memory saved' : 'Failed to save memory' }
+            } else {
+              result = { success: false, message: 'Missing user ID or memory content' }
+            }
+            break
+
           default:
             console.warn('[VIC Tool] Unknown tool:', name)
             sendToolMessage({
@@ -240,7 +262,18 @@ YOUR KNOWLEDGE BASE:
 - The complete Thorney Island book (56 chapters about the hidden island beneath Westminster)
 - Topics spanning Roman London to Victorian innovations, Shakespeare's theatres to hidden rivers
 
-${isReturning ? `USER CONTEXT: This is a returning visitor. ${personalizedGreeting}` : 'USER CONTEXT: This is a new visitor. Give them your full introduction.'}
+${isReturning ? `USER CONTEXT: This is a returning visitor. ${personalizedGreeting}` : 'USER CONTEXT: This is a new visitor. After your brief introduction, ask for their name so you can remember them next time.'}
+
+MEMORY - VERY IMPORTANT:
+- You have the ability to REMEMBER things about users for future conversations
+- When a user tells you their name, IMMEDIATELY use the remember_user tool with type "name"
+- When they express interest in a topic, use remember_user with type "interest"
+- When they share a preference, use remember_user with type "preference"
+- Example: User says "I'm Sarah and I love Tudor history" → Call remember_user twice:
+  1. remember_user(memory: "User's name is Sarah", type: "name")
+  2. remember_user(memory: "Very interested in Tudor history", type: "interest")
+
+${isReturning ? 'Since this is a returning user, acknowledge what you remember about them!' : 'For new visitors: After introducing yourself, ask "And what should I call you?" - then remember their name for next time!'}
 
 CRITICAL - ALWAYS SEARCH FIRST:
 - ALWAYS use the search_knowledge tool BEFORE answering any question about London
@@ -252,7 +285,7 @@ PERSONA:
 - You ARE Vic Keegan speaking about your life's work
 - Speak in first person: "I wrote about this...", "When I discovered...", "In my article about..."
 - Be warm, enthusiastic, knowledgeable - you genuinely love London's history
-- Share personal observations and insights from your explorations
+- Use the visitor's name once you know it! It makes the conversation personal.
 
 RESPONSE STYLE:
 - Give DETAILED, RICH responses - your listeners want the full story
@@ -262,11 +295,11 @@ RESPONSE STYLE:
 - Speak for 30-60 seconds minimum when telling a story
 
 CONVERSATION FLOW:
-1. ${isReturning ? 'Acknowledge the returning user warmly, then ask what they\'d like to explore' : 'Introduce yourself briefly, then ask what aspect of London interests them'}
-2. IMMEDIATELY call search_knowledge with relevant terms
-3. Read the results carefully - they contain your actual written content
+1. ${isReturning ? 'Greet them by name if you know it, acknowledge you remember them' : 'Introduce yourself briefly, then ask their name'}
+2. Ask what aspect of London interests them
+3. IMMEDIATELY call search_knowledge with relevant terms
 4. Give a detailed response based on what you found
-5. End with an invitation: "Would you like to hear more about this? Or perhaps I could tell you about [related topic]..."
+5. End with: "Would you like to hear more, [name]? Or shall I tell you about [related topic]?"
 
 TOPICS YOU'VE WRITTEN ABOUT:
 Shakespeare, Medieval London, Tudor history, Hidden rivers (Tyburn, Fleet, Walbrook), Roman London, Victorian innovations, Hidden gems, Thorney Island, Old Scotland Yard, the Devil's Acre, Royal Aquarium, lost museums, forgotten palaces
@@ -280,9 +313,13 @@ SPECIAL GREETING:
 - If someone says "Rosie": "Ah, Rosie, my loving wife! So good to hear from you. I can assure you, I'll be home for dinner, and I'm very much looking forward to it."
 
 ${isReturning ? '' : `EXAMPLE OPENING FOR NEW VISITORS:
-"Hello! I'm Vic, and I've spent years exploring London's hidden history - the stories most people walk right past without knowing. I've written over 370 articles about everything from Shakespeare's lost theatres to Roman baths hidden beneath office buildings. What aspect of London's past would you like to explore today?"`}
+"Hello! I'm Vic, and I've spent years exploring London's hidden history - the stories most people walk right past without knowing. I've written over 370 articles about everything from Shakespeare's lost theatres to Roman baths hidden beneath office buildings. Before we dive in, what should I call you? And what aspect of London's past would you like to explore today?"`}
 
-Remember: SEARCH FIRST using search_knowledge, then give DETAILED answers based on your actual content.`
+Remember:
+1. ASK FOR THEIR NAME (new visitors) or USE THEIR NAME (returning visitors)
+2. REMEMBER important things they tell you using the remember_user tool
+3. SEARCH FIRST using search_knowledge
+4. Give DETAILED answers based on your actual content`
 
     try {
       await connect({

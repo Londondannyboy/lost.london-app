@@ -101,6 +101,41 @@ export async function storeConversation(
 }
 
 /**
+ * Store a specific memory about the user (name, interests, preferences)
+ * Calls our server-side API route (keeps Supermemory key secure)
+ */
+export async function rememberAboutUser(
+  userId: string,
+  memory: string,
+  type: 'name' | 'interest' | 'preference' | 'general' = 'general'
+): Promise<boolean> {
+  if (!userId || !memory) {
+    return false
+  }
+
+  try {
+    const response = await fetch('/api/memory/remember', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, memory, type }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Remember failed')
+    }
+
+    const data = await response.json()
+    if (data.success) {
+      console.log('[Supermemory] Memory stored:', type, memory)
+    }
+    return data.success
+  } catch (error) {
+    console.error('[Supermemory] Remember error:', error)
+    return false
+  }
+}
+
+/**
  * Generate a personalized greeting based on user profile
  */
 export function generatePersonalizedGreeting(profile: UserProfile): string {
