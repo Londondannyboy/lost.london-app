@@ -95,14 +95,15 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
         switch (name) {
           case 'search_knowledge':
-            response = await fetch('/api/london-tools/unified-search', {
+            // Use semantic search with pgvector embeddings
+            response = await fetch('/api/london-tools/semantic-search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(parameters || {}),
             })
             result = await response.json()
             // Show first article result as featured (if it's an article, not a Thorney chunk)
-            const firstArticle = result.results?.find((r: any) => r.source === 'article')
+            const firstArticle = result.results?.find((r: any) => r.source_type === 'article')
             if (firstArticle) {
               setFeaturedArticle({
                 title: firstArticle.title,
@@ -110,7 +111,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
                 excerpt: firstArticle.excerpt,
                 url: firstArticle.url,
                 categories: firstArticle.categories,
-                publication_date: firstArticle.publication_date,
+                publication_date: firstArticle.metadata?.publication_date,
               })
             }
             break
