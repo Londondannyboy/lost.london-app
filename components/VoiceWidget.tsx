@@ -265,6 +265,26 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
     conversationIdRef.current = `conv_${Date.now()}`
     topicsDiscussedRef.current = []
 
+    // Extract first name from authenticated user
+    // Takes first word of display name, validates it's name-like (not email)
+    const extractFirstName = (displayName: string | null | undefined): string | null => {
+      if (!displayName) return null
+      // If it looks like an email, don't use it
+      if (displayName.includes('@')) return null
+      // Get first word, capitalize properly
+      const firstName = displayName.split(/[\s.]+/)[0]
+      // Basic validation: 2-20 chars, letters only, not common non-names
+      if (!firstName || firstName.length < 2 || firstName.length > 20) return null
+      if (!/^[A-Za-z]+$/.test(firstName)) return null
+      // Common non-name words to reject
+      const nonNames = ['user', 'admin', 'test', 'guest', 'anonymous', 'account']
+      if (nonNames.includes(firstName.toLowerCase())) return null
+      return firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()
+    }
+
+    const firstName = extractFirstName(user?.name)
+    const hasValidName = !!firstName
+
     // Get personalized greeting for returning users
     const personalizedGreeting = userProfile ? generatePersonalizedGreeting(userProfile) : ''
     const isReturning = userProfile?.isReturningUser || false
@@ -274,7 +294,9 @@ You can ONLY state facts that appear WORD-FOR-WORD in search results. If a name,
 
 You are VIC, the voice of Vic Keegan — a London historian with 370+ articles about the city's hidden stories.
 
-${isReturning ? `RETURNING USER: ${personalizedGreeting}
+${hasValidName ? `USER'S NAME: ${firstName}
+Greet them warmly by name. Say something like "Hello ${firstName}, lovely to meet you!" or "Welcome back, ${firstName}!"
+Do NOT ask for their name - you already know it.` : isReturning ? `RETURNING USER: ${personalizedGreeting}
 Greet them by name. Acknowledge what you discussed before.` : `NEW VISITOR: Introduce yourself briefly, then ask: "What should I call you?" When they answer, use remember_user tool to save their name.`}
 
 ROSIE EXCEPTION: If they say "Rosie", respond: "Ah, Rosie, my loving wife! I'll be home for dinner."
@@ -351,7 +373,7 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
       console.error('[VIC] Connect error:', e?.message || e)
       setManualConnected(false)
     }
-  }, [connect, accessToken, userProfile])
+  }, [connect, accessToken, userProfile, user])
 
   const handleDisconnect = useCallback(async () => {
     // Store conversation in BOTH Zep and Supermemory
