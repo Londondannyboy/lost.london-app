@@ -79,10 +79,21 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
   // Handle Hume tool calls
   useEffect(() => {
     const lastMessage = messages[messages.length - 1]
+
+    // DEBUG: Log ALL messages to see what Hume is sending
+    if (lastMessage) {
+      console.log('[VIC Debug] Last message type:', lastMessage.type, 'Full:', JSON.stringify(lastMessage).substring(0, 500))
+    }
+
     if (!lastMessage || lastMessage.type !== 'tool_call') return
 
     const handleToolCall = async (toolCall: any) => {
-      const { name, toolCallId, parameters } = toolCall
+      // Handle both camelCase and snake_case from Hume
+      const name = toolCall.name || toolCall.tool_name
+      const toolCallId = toolCall.toolCallId || toolCall.tool_call_id
+      const parameters = toolCall.parameters
+
+      console.log('[VIC Tool] Raw toolCall:', JSON.stringify(toolCall))
 
       // CRITICAL: Hume sends parameters as a JSON STRING that needs parsing
       let args: Record<string, any> = {}
@@ -92,7 +103,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
         console.error('[VIC Tool] Failed to parse parameters:', parameters)
       }
 
-      console.log('[VIC Tool] Received:', name, 'Args:', args)
+      console.log('[VIC Tool] Received:', name, 'ID:', toolCallId, 'Args:', args)
 
       try {
         let response: Response
@@ -207,7 +218,10 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
       }
     }
 
-    if (lastMessage.toolCallId && lastMessage.name) {
+    // Handle both camelCase and snake_case property names
+    const hasToolCall = (lastMessage.toolCallId || lastMessage.tool_call_id) &&
+                        (lastMessage.name || lastMessage.tool_name)
+    if (hasToolCall) {
       handleToolCall(lastMessage)
     }
   }, [messages, sendToolMessage])
