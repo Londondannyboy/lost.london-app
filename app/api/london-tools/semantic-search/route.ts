@@ -122,19 +122,66 @@ async function semanticSearch(query: string, limit: number = 10): Promise<Search
   // Get embedding for the normalized query
   const queryEmbedding = await getQueryEmbedding(normalizedQuery)
 
-  // Search using cosine similarity
+  // HYBRID SEARCH: Combine vector similarity + full-text keyword matching
+  // This is how production RAG systems work - pure vector search alone is not enough
   const results = await sql`
+    WITH
+    -- Vector search results
+    vector_results AS (
+      SELECT
+        id,
+        1 - (embedding <=> ${JSON.stringify(queryEmbedding)}::vector) as vector_score
+      FROM knowledge_chunks
+      ORDER BY embedding <=> ${JSON.stringify(queryEmbedding)}::vector
+      LIMIT 50
+    ),
+    -- Keyword search results (title + content matching)
+    keyword_results AS (
+      SELECT
+        id,
+        CASE
+          -- Exact phrase in content = strong signal
+          WHEN LOWER(content) LIKE ${`%${normalizedQuery.toLowerCase()}%`} THEN 0.30
+          -- Query words in title = strong signal
+          WHEN LOWER(title) LIKE ${`%${normalizedQuery.toLowerCase()}%`} THEN 0.25
+          -- First word match in title
+          WHEN LOWER(title) LIKE ${`%${normalizedQuery.split(' ')[0]?.toLowerCase() || ''}%`} THEN 0.10
+          -- First word match in content
+          WHEN LOWER(content) LIKE ${`%${normalizedQuery.split(' ')[0]?.toLowerCase() || ''}%`} THEN 0.05
+          ELSE 0
+        END as keyword_score,
+        -- Article type boost (prefer full articles over poems/sections)
+        CASE
+          WHEN title LIKE 'Vic Keegan%Lost London%' THEN 0.10
+          WHEN source_type = 'article' THEN 0.05
+          ELSE 0
+        END as type_boost
+      FROM knowledge_chunks
+    )
+    -- Combine vector + keyword scores
     SELECT
-      id,
-      source_type,
-      source_id,
-      title,
-      content,
-      chunk_index,
-      metadata,
-      1 - (embedding <=> ${JSON.stringify(queryEmbedding)}::vector) as similarity
-    FROM knowledge_chunks
-    ORDER BY embedding <=> ${JSON.stringify(queryEmbedding)}::vector
+      kc.id,
+      kc.source_type,
+      kc.source_id,
+      kc.title,
+      kc.content,
+      kc.chunk_index,
+      kc.metadata,
+      COALESCE(vr.vector_score, 0) as vector_score,
+      COALESCE(kr.keyword_score, 0) as keyword_score,
+      COALESCE(kr.type_boost, 0) as type_boost,
+      -- Final score: 60% vector + 40% keyword + type boost
+      (COALESCE(vr.vector_score, 0) * 0.6) +
+      (COALESCE(kr.keyword_score, 0) * 0.4) +
+      COALESCE(kr.type_boost, 0) as final_score
+    FROM knowledge_chunks kc
+    LEFT JOIN vector_results vr ON kc.id = vr.id
+    LEFT JOIN keyword_results kr ON kc.id = kr.id
+    WHERE vr.id IS NOT NULL OR kr.keyword_score > 0
+    ORDER BY
+      (COALESCE(vr.vector_score, 0) * 0.6) +
+      (COALESCE(kr.keyword_score, 0) * 0.4) +
+      COALESCE(kr.type_boost, 0) DESC
     LIMIT ${limit}
   `
 
@@ -146,7 +193,7 @@ async function semanticSearch(query: string, limit: number = 10): Promise<Search
     content: r.content,
     chunk_index: r.chunk_index,
     metadata: r.metadata,
-    similarity: parseFloat(r.similarity),
+    similarity: parseFloat(r.final_score || r.vector_score || 0),
   }))
 }
 
