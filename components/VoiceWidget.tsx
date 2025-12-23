@@ -127,13 +127,13 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
         switch (name) {
           case 'search_knowledge':
-            // Use SIMPLE pgvector search - more reliable, no Zep complexity
+            // Use SIMPLE pgvector search with phonetic normalization
             response = await fetch('/api/london-tools/semantic-search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 query: parameters?.query,
-                limit: 5,
+                limit: 10, // More results for better coverage
               }),
             })
             result = await response.json()

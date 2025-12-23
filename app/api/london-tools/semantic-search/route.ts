@@ -3,6 +3,77 @@ import { neon } from '@neondatabase/serverless'
 
 const VOYAGE_API_KEY = process.env.VOYAGE_API_KEY
 
+/**
+ * Phonetic corrections for common mispronunciations and accent variations
+ * Maps what people might say → what's actually in the database
+ */
+const PHONETIC_CORRECTIONS: Record<string, string> = {
+  // Names - common mispronunciations
+  'ignacio': 'ignatius',
+  'ignasio': 'ignatius',
+  'ignacius': 'ignatius',
+  'sancho': 'sancho', // keep as-is but ensure matching
+
+  // Places - accent variations
+  'thorny': 'thorney',
+  'fawny': 'thorney',
+  'fauny': 'thorney',
+  'forney': 'thorney',
+  'tyburn': 'tyburn',
+  'tie burn': 'tyburn',
+  'tieburn': 'tyburn',
+
+  // Buildings
+  'aquarim': 'aquarium',
+  'aquariam': 'aquarium',
+  'royale': 'royal',
+  'cristal': 'crystal',
+  'crystle': 'crystal',
+
+  // Historical terms
+  'shakespear': 'shakespeare',
+  'shakespere': 'shakespeare',
+  'shakspeare': 'shakespeare',
+  'elizabethian': 'elizabethan',
+  'elizabethen': 'elizabethan',
+  'victorien': 'victorian',
+  'mediaeval': 'medieval',
+  'medival': 'medieval',
+  'tudor': 'tudor',
+  'tudors': 'tudor',
+
+  // Common London terms
+  'westminster': 'westminster',
+  'westmister': 'westminster',
+  'whitehall': 'whitehall',
+  'white hall': 'whitehall',
+  'parliament': 'parliament',
+  'parliment': 'parliament',
+  'thames': 'thames',
+  'tems': 'thames',
+
+  // Devils Acre variations
+  'devils acre': "devil's acre",
+  'devil acre': "devil's acre",
+  'the devils acre': "devil's acre",
+}
+
+/**
+ * Normalize query by applying phonetic corrections
+ */
+function normalizeQuery(query: string): string {
+  let normalized = query.toLowerCase().trim()
+
+  // Apply phonetic corrections
+  for (const [wrong, correct] of Object.entries(PHONETIC_CORRECTIONS)) {
+    // Use word boundary matching to avoid partial replacements
+    const regex = new RegExp(`\\b${wrong}\\b`, 'gi')
+    normalized = normalized.replace(regex, correct)
+  }
+
+  return normalized
+}
+
 // Get embedding for a query
 async function getQueryEmbedding(text: string): Promise<number[]> {
   if (!VOYAGE_API_KEY) {
@@ -44,8 +115,12 @@ interface SearchResult {
 async function semanticSearch(query: string, limit: number = 10): Promise<SearchResult[]> {
   const sql = neon(process.env.DATABASE_URL!)
 
-  // Get embedding for the query
-  const queryEmbedding = await getQueryEmbedding(query)
+  // Normalize query for accent/mispronunciation tolerance
+  const normalizedQuery = normalizeQuery(query)
+  console.log(`[Search] Original: "${query}" → Normalized: "${normalizedQuery}"`)
+
+  // Get embedding for the normalized query
+  const queryEmbedding = await getQueryEmbedding(normalizedQuery)
 
   // Search using cosine similarity
   const results = await sql`
