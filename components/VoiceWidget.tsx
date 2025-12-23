@@ -119,7 +119,16 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
     const handleToolCall = async (toolCall: any) => {
       const { name, toolCallId, parameters } = toolCall
-      console.log('[VIC Tool] Received:', name, parameters)
+
+      // CRITICAL: Hume sends parameters as a JSON STRING that needs parsing
+      let args: Record<string, any> = {}
+      try {
+        args = typeof parameters === 'string' ? JSON.parse(parameters) : (parameters || {})
+      } catch (e) {
+        console.error('[VIC Tool] Failed to parse parameters:', parameters)
+      }
+
+      console.log('[VIC Tool] Received:', name, 'Args:', args)
 
       try {
         let response: Response
@@ -132,15 +141,15 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                query: parameters?.query,
+                query: args.query,
                 limit: 10,
               }),
             })
             result = await response.json()
 
             // Track topics discussed for Supermemory
-            if (parameters?.query) {
-              topicsDiscussedRef.current.push(parameters.query)
+            if (args.query) {
+              topicsDiscussedRef.current.push(args.query)
             }
 
             // Show first article as featured
@@ -160,7 +169,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
             response = await fetch('/api/london-tools/article', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(parameters || {}),
+              body: JSON.stringify(args),
             })
             result = await response.json()
             if (result.article) {
@@ -172,7 +181,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
             response = await fetch('/api/london-tools/categories', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(parameters || {}),
+              body: JSON.stringify(args),
             })
             result = await response.json()
             if (result.articles?.[0]) {
@@ -194,11 +203,11 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
           case 'remember_user':
             // Store memory in Supermemory (explicit user facts)
-            if (userId && parameters?.memory) {
+            if (userId && args.memory) {
               const success = await rememberAboutUser(
                 userId,
-                parameters.memory,
-                parameters.type || 'general'
+                args.memory,
+                args.type || 'general'
               )
               result = { success, message: success ? 'Memory saved' : 'Failed to save memory' }
             } else {
