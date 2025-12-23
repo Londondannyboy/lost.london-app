@@ -726,8 +726,12 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
 export function VoiceWidget() {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { data: session, isPending: authLoading } = authClient.useSession()
 
   useEffect(() => {
+    // Only fetch Hume token if user is authenticated
+    if (!session?.user) return
+
     async function getAccessToken() {
       try {
         const response = await fetch('/api/hume-token')
@@ -740,7 +744,58 @@ export function VoiceWidget() {
       }
     }
     getAccessToken()
-  }, [])
+  }, [session?.user])
+
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="text-center py-20">
+        <div className="w-10 h-10 border-2 border-gray-200 border-t-black rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-500 font-serif">Loading...</p>
+      </div>
+    )
+  }
+
+  // Require sign-in to talk to VIC
+  if (!session?.user) {
+    return (
+      <div className="text-center py-16">
+        {/* VIC Avatar - dimmed */}
+        <div className="relative w-48 h-48 mx-auto mb-8 opacity-60">
+          <img
+            src="/vic-avatar.jpg"
+            alt="VIC - Sign in to chat"
+            className="w-full h-full object-cover rounded-full grayscale"
+          />
+          <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+            <span className="text-white text-4xl">🔒</span>
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-serif font-bold text-[#f4ead5] mb-3">
+          Sign in to speak with VIC
+        </h2>
+        <p className="text-[#d4c4a8] mb-8 max-w-md mx-auto">
+          Create a free account to chat with VIC about London's hidden history.
+          Your conversations will be saved and VIC will remember you.
+        </p>
+
+        <a
+          href="/auth/sign-in"
+          className="inline-block px-8 py-4 bg-[#f4ead5] text-[#2a231a] font-medium rounded-full hover:bg-white transition-colors"
+        >
+          Sign in to continue
+        </a>
+
+        <p className="text-[#a89878] text-sm mt-6">
+          Don't have an account?{' '}
+          <a href="/auth/sign-up" className="underline hover:text-[#f4ead5]">
+            Sign up free
+          </a>
+        </p>
+      </div>
+    )
+  }
 
   if (error) {
     return (
