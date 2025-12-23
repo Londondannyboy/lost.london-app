@@ -79,21 +79,27 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
   // Handle Hume tool calls
   useEffect(() => {
     const lastMessage = messages[messages.length - 1]
+    if (!lastMessage) return
 
-    // DEBUG: Log ALL messages to see what Hume is sending
-    if (lastMessage) {
-      console.log('[VIC Debug] Last message type:', lastMessage.type, 'Full:', JSON.stringify(lastMessage).substring(0, 500))
-    }
+    // Log ALL message types so we can see what Hume sends
+    console.log('[VIC] Message received:', lastMessage.type)
 
-    if (!lastMessage || lastMessage.type !== 'tool_call') return
+    // Check for tool_call in various formats Hume might send
+    const isToolCall = lastMessage.type === 'tool_call' ||
+                       lastMessage.type === 'tool_call_message' ||
+                       (lastMessage as any).tool_call_id
+
+    if (!isToolCall) return
+
+    console.log('[VIC] 🔧 TOOL CALL DETECTED:', JSON.stringify(lastMessage, null, 2))
 
     const handleToolCall = async (toolCall: any) => {
-      // Handle both camelCase and snake_case from Hume
-      const name = toolCall.name || toolCall.tool_name
+      // Handle various property names Hume might use
+      const name = toolCall.name || toolCall.tool_name || toolCall.function?.name
       const toolCallId = toolCall.toolCallId || toolCall.tool_call_id
-      const parameters = toolCall.parameters
+      const parameters = toolCall.parameters || toolCall.function?.arguments
 
-      console.log('[VIC Tool] Raw toolCall:', JSON.stringify(toolCall))
+      console.log('[VIC Tool] Parsed:', { name, toolCallId, parameters })
 
       // CRITICAL: Hume sends parameters as a JSON STRING that needs parsing
       let args: Record<string, any> = {}
@@ -219,12 +225,8 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
       }
     }
 
-    // Handle both camelCase and snake_case property names
-    const hasToolCall = (lastMessage.toolCallId || lastMessage.tool_call_id) &&
-                        (lastMessage.name || lastMessage.tool_name)
-    if (hasToolCall) {
-      handleToolCall(lastMessage)
-    }
+    // Process the tool call
+    handleToolCall(lastMessage)
   }, [messages, sendToolMessage])
 
   // Waveform animation
