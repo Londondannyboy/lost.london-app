@@ -285,9 +285,11 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
     const firstName = extractFirstName(user?.name)
     const hasValidName = !!firstName
 
-    // Debug logging
-    console.log('[VIC Auth] User object:', user)
-    console.log('[VIC Auth] Display name:', user?.name)
+    // Debug logging - check all possible name fields
+    console.log('[VIC Auth] Full user object:', JSON.stringify(user, null, 2))
+    console.log('[VIC Auth] user.name:', user?.name)
+    console.log('[VIC Auth] user.displayName:', (user as any)?.displayName)
+    console.log('[VIC Auth] user.firstName:', (user as any)?.firstName)
     console.log('[VIC Auth] Extracted first name:', firstName)
 
     // Get personalized greeting for returning users
