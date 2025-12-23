@@ -11,6 +11,7 @@ import {
   generatePersonalizedGreeting,
   type UserProfile,
 } from '@/lib/hybrid-memory'
+import { VictorianTranscript } from './VictorianTranscript'
 
 interface Article {
   title: string
@@ -696,6 +697,13 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
           ))}
         </div>
       </div>
+
+      {/* Victorian Transcript with Debug Panel */}
+      <VictorianTranscript
+        messages={messages}
+        isConnected={isConnected}
+        showDebug={true}
+      />
     </div>
   )
 }

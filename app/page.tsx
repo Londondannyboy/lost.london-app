@@ -28,23 +28,24 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section - Voice First */}
-      <section className="relative min-h-[80vh] flex items-center justify-center">
-        {/* Subtle River Map Background */}
+      <section className="relative min-h-[80vh] flex items-center justify-center bg-[#1a1612]">
+        {/* Dark River Map Background */}
         <div className="absolute inset-0 z-0">
           <img
             src="/London Map with River.jpg"
             alt=""
-            className="w-full h-full object-cover opacity-[0.04]"
+            className="w-full h-full object-cover opacity-40"
+            style={{ filter: 'sepia(30%) contrast(1.1)' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1a1612]/60 via-transparent to-[#1a1612]/80" />
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 py-16 text-center">
           {/* Headline */}
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4">
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-4 text-[#f4ead5]">
             Lost London
           </h1>
-          <p className="text-xl md:text-2xl text-gray-500 mb-12 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-[#d4c4a8] mb-12 max-w-2xl mx-auto">
             AI-powered voice guide to 2,000 years of hidden history
           </p>
 
