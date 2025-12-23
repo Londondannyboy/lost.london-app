@@ -7,7 +7,7 @@ export function UserButton() {
   return (
     <>
       <SignedIn>
-        <NeonUserButton />
+        <NeonUserButton size="icon" />
       </SignedIn>
       <SignedOut>
         <Link
