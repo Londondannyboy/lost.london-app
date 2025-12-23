@@ -127,27 +127,75 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
         switch (name) {
           case 'search_knowledge':
-            // Use HYBRID search: pgvector for content + Zep for relationships
-            response = await fetch('/api/london-tools/hybrid-search', {
+            // Use SEQUENTIAL search v2: with interest weighting and fast-first response
+            response = await fetch('/api/london-tools/sequential-search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(parameters || {}),
+              body: JSON.stringify({
+                query: parameters?.query,
+                userId: userId,
+                // Pass user interests for personalization
+                userInterests: userProfile?.interests || [],
+              }),
             })
             result = await response.json()
+
             // Track topics discussed for Supermemory
             if (parameters?.query) {
               topicsDiscussedRef.current.push(parameters.query)
             }
-            // Show first article result as featured
-            const firstArticle = result.results?.find((r: any) => r.source_type === 'article')
-            if (firstArticle) {
+
+            // Transform to voice-optimized format for Hume AI
+            // New structure: immediate (speak now) + followUp (offer after)
+            const voiceOptimizedResult = {
+              query: result.query,
+
+              // SPEAK NOW: Primary topic with full content
+              speakNow: {
+                topic: result.immediate?.topic?.name || null,
+                type: result.immediate?.topic?.type || null,
+                // Full article content for rich storytelling
+                content: result.immediate?.topic?.articles?.[0]?.content || '',
+                excerpt: result.immediate?.topic?.articles?.[0]?.excerpt || '',
+                title: result.immediate?.topic?.articles?.[0]?.title || '',
+                // Key facts to weave in
+                keyFacts: result.immediate?.keyFacts || [],
+                // If this matches their interest, SAY SO!
+                matchesInterest: result.immediate?.matchesUserInterest || null,
+              },
+
+              // OFFER AFTER: Follow-up suggestions
+              offerAfter: {
+                // Pre-built question VIC can use
+                suggestedQuestion: result.followUp?.suggestedQuestion || '',
+                // Topics with interest flags
+                topics: result.followUp?.topics?.map((t: any) => ({
+                  name: t.name,
+                  type: t.type,
+                  teaser: t.teaser,
+                  // VIC should prioritize interest matches!
+                  matchesInterest: t.matchesInterest || false,
+                })) || [],
+              },
+
+              // CONTEXT: Relationship facts for depth
+              relationships: result.context?.relationships || [],
+
+              // Performance info (for debugging)
+              meta: result.meta,
+            }
+
+            // Override result with voice-optimized version
+            result = voiceOptimizedResult
+
+            // Show primary article as featured
+            if (result.speakNow?.title) {
               setFeaturedArticle({
-                title: firstArticle.title,
-                author: firstArticle.author,
-                excerpt: firstArticle.excerpt,
-                url: firstArticle.url,
-                categories: firstArticle.categories,
-                publication_date: firstArticle.metadata?.publication_date,
+                title: result.speakNow.title,
+                author: 'Vic Keegan',
+                excerpt: result.speakNow.excerpt,
+                url: '',
+                categories: [],
               })
             }
             break
@@ -281,9 +329,39 @@ ${isReturning ? 'Since this is a returning user, acknowledge what you remember a
 
 CRITICAL - ALWAYS SEARCH FIRST:
 - ALWAYS use the search_knowledge tool BEFORE answering any question about London
-- This tool searches both articles AND the knowledge graph for related topics
+- This tool uses SEQUENTIAL SEARCH v2 with interest awareness and fast-first response
 - Even if you think you know the answer, SEARCH FIRST to get accurate details
-- The search understands meaning AND relationships between topics
+
+SEARCH RESPONSE STRUCTURE:
+The search returns a voice-optimized format:
+1. speakNow: What to talk about IMMEDIATELY
+   - topic: The main subject
+   - content: Full article text for rich storytelling
+   - keyFacts: Important facts to weave in
+   - matchesInterest: If this matches user's known interest, MENTION IT!
+
+2. offerAfter: What to suggest AFTER your main response
+   - suggestedQuestion: A ready-made follow-up question
+   - topics: Related topics (some may match user interests!)
+
+3. relationships: Connection facts between topics
+
+HOW TO RESPOND:
+1. START with speakNow.content - this is your main story
+2. WEAVE IN speakNow.keyFacts for depth
+3. If matchesInterest is set, acknowledge it: "Since you're interested in [interest]..."
+4. END with offerAfter.suggestedQuestion (it's already personalized!)
+5. If a follow-up topic matchesInterest, prioritize suggesting that one
+
+PERSONALIZATION IS KEY:
+- If speakNow.matchesInterest is set, START with: "Ah, this connects to your interest in [interest]!"
+- If offerAfter has topics with matchesInterest=true, suggest those FIRST
+- This makes users feel heard and known
+
+Example: User interested in "Victorian" asks about "Royal Aquarium"
+→ speakNow.matchesInterest = "victorian"
+→ VIC: "Ah, this is perfect for your interest in the Victorian era! The Royal Aquarium..."
+→ End with: offerAfter.suggestedQuestion: "Since you're interested in buildings, would you like to hear about Crystal Palace?"
 
 PERSONA:
 - You ARE Vic Keegan speaking about your life's work
@@ -297,6 +375,9 @@ RESPONSE STYLE:
 - Include specific facts, dates, names, and anecdotes from your articles
 - Paint vivid pictures: describe what you saw, what you discovered
 - Speak for 30-60 seconds minimum when telling a story
+- CONNECT THE DOTS: Use the "relationships" array to weave in fascinating connections
+- Always offer a related topic from "suggestedTopics" at the end
+- Make it feel like a journey through connected history, not isolated facts
 
 CONVERSATION FLOW:
 1. ${isReturning ? 'Greet them by name if you know it, acknowledge you remember them' : 'Introduce yourself briefly, then ask their name'}
@@ -322,9 +403,10 @@ ${isReturning ? '' : `EXAMPLE OPENING FOR NEW VISITORS:
 Remember:
 1. ASK FOR THEIR NAME (new visitors) or USE THEIR NAME (returning visitors)
 2. Use remember_user to SAVE their name and interests
-3. SEARCH FIRST using search_knowledge - combines articles + knowledge graph
-4. Give DETAILED answers based on your actual content
-5. Suggest related topics from the graph (relatedEntities, suggestedTopics)`
+3. SEARCH FIRST using search_knowledge - it returns speakNow + offerAfter structure
+4. Use speakNow.content for your main story, weave in keyFacts
+5. If matchesInterest is set, acknowledge it warmly!
+6. End with offerAfter.suggestedQuestion (it's personalized for them)`
 
     try {
       await connect({
