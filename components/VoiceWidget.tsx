@@ -390,7 +390,11 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
   }, [connect, accessToken, userProfile, user])
 
   const handleDisconnect = useCallback(async () => {
-    // Store conversation in BOTH Zep and Supermemory
+    // Disconnect immediately - don't wait for storage
+    disconnect()
+    setManualConnected(false)
+
+    // Store conversation in background (non-blocking)
     if (userId && messages.length > 0) {
       const conversationMessages = messages
         .filter((m: any) => m.type === 'user_message' || m.type === 'assistant_message')
@@ -400,26 +404,17 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
         }))
         .filter(m => m.content)
 
-      // Store in Supermemory (full conversation for session memory)
+      // Fire and forget - don't block disconnect
       if (conversationMessages.length > 0) {
-        await storeConversation(
+        storeConversation(
           userId,
           conversationIdRef.current,
           conversationMessages,
           topicsDiscussedRef.current
-        )
-        console.log('[VIC] Conversation stored in Supermemory')
+        ).catch(e => console.warn('[VIC] Failed to store conversation:', e))
       }
-
-      // Store key messages in Zep (automatic fact extraction)
-      for (const msg of conversationMessages.slice(0, 10)) { // First 10 messages
-        await storeMessageInZep(userId, msg.content, msg.role)
-      }
-      console.log('[VIC] Messages stored in Zep for fact extraction')
+      // Skip Zep storage for now - it's slow/unreliable
     }
-
-    disconnect()
-    setManualConnected(false)
   }, [disconnect, userId, messages])
 
   const isConnected = status.value === 'connected' || manualConnected
