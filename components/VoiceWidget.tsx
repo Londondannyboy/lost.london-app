@@ -127,15 +127,13 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
         switch (name) {
           case 'search_knowledge':
-            // Use SEQUENTIAL search v2: with interest weighting and fast-first response
-            response = await fetch('/api/london-tools/sequential-search', {
+            // Use SIMPLE pgvector search - more reliable, no Zep complexity
+            response = await fetch('/api/london-tools/semantic-search', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 query: parameters?.query,
-                userId: userId,
-                // Pass user interests for personalization
-                userInterests: userProfile?.interests || [],
+                limit: 5,
               }),
             })
             result = await response.json()
@@ -145,57 +143,15 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
               topicsDiscussedRef.current.push(parameters.query)
             }
 
-            // Transform to voice-optimized format for Hume AI
-            // New structure: immediate (speak now) + followUp (offer after)
-            const voiceOptimizedResult = {
-              query: result.query,
-
-              // SPEAK NOW: Primary topic with full content
-              speakNow: {
-                topic: result.immediate?.topic?.name || null,
-                type: result.immediate?.topic?.type || null,
-                // Full article content for rich storytelling
-                content: result.immediate?.topic?.articles?.[0]?.content || '',
-                excerpt: result.immediate?.topic?.articles?.[0]?.excerpt || '',
-                title: result.immediate?.topic?.articles?.[0]?.title || '',
-                // Key facts to weave in
-                keyFacts: result.immediate?.keyFacts || [],
-                // If this matches their interest, SAY SO!
-                matchesInterest: result.immediate?.matchesUserInterest || null,
-              },
-
-              // OFFER AFTER: Follow-up suggestions
-              offerAfter: {
-                // Pre-built question VIC can use
-                suggestedQuestion: result.followUp?.suggestedQuestion || '',
-                // Topics with interest flags
-                topics: result.followUp?.topics?.map((t: any) => ({
-                  name: t.name,
-                  type: t.type,
-                  teaser: t.teaser,
-                  // VIC should prioritize interest matches!
-                  matchesInterest: t.matchesInterest || false,
-                })) || [],
-              },
-
-              // CONTEXT: Relationship facts for depth
-              relationships: result.context?.relationships || [],
-
-              // Performance info (for debugging)
-              meta: result.meta,
-            }
-
-            // Override result with voice-optimized version
-            result = voiceOptimizedResult
-
-            // Show primary article as featured
-            if (result.speakNow?.title) {
+            // Show first article as featured
+            const firstResult = result.results?.[0]
+            if (firstResult) {
               setFeaturedArticle({
-                title: result.speakNow.title,
-                author: 'Vic Keegan',
-                excerpt: result.speakNow.excerpt,
-                url: '',
-                categories: [],
+                title: firstResult.title,
+                author: firstResult.author || 'Vic Keegan',
+                excerpt: firstResult.excerpt,
+                url: firstResult.url || '',
+                categories: firstResult.categories || [],
               })
             }
             break
