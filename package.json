@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@getzep/zep-cloud": "^3.13.0",
     "@humeai/voice-react": "^0.2.11",
     "@neondatabase/neon-js": "^0.1.0-beta.19",
     "@neondatabase/serverless": "^1.0.2",

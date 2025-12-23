@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { VoiceProvider, useVoice } from '@humeai/voice-react'
 import {
   getUserId,
   getUserProfile,
-  storeConversation,
-  rememberAboutUser,
+  storeMessage,
   generatePersonalizedGreeting,
+  searchKnowledge,
   type UserProfile,
-} from '@/lib/supermemory'
+} from '@/lib/zep-memory'
 
 interface Article {
   title: string
@@ -75,13 +75,6 @@ const LONDON_TOOLS = [
     parameters: '{ "type": "object", "properties": {} }',
     fallback_content: 'Unable to get random article at the moment.',
   },
-  {
-    type: 'function' as const,
-    name: 'remember_user',
-    description: 'Remember something important about the user for future conversations. Use this when the user tells you their name, mentions their interests, or shares something you should remember. Types: name for their name, interest for topics they like, preference for how they like things, general for other facts.',
-    parameters: `{ "type": "object", "required": ["memory", "type"], "properties": { "memory": { "type": "string", "description": "What to remember about the user" }, "type": { "type": "string", "enum": ["name", "interest", "preference", "general"], "description": "Category of memory" } } }`,
-    fallback_content: 'Unable to save memory at the moment.',
-  },
 ]
 
 function VoiceInterface({ accessToken }: { accessToken: string }) {
@@ -91,8 +84,6 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
   const [featuredArticle, setFeaturedArticle] = useState<Article | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [userId, setUserId] = useState<string>('')
-  const conversationIdRef = useRef<string>('')
-  const topicsDiscussedRef = useRef<string[]>([])
 
   // Get user ID and profile on mount
   useEffect(() => {
@@ -183,20 +174,6 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
             }
             break
 
-          case 'remember_user':
-            // Store memory about the user
-            if (userId && parameters?.memory) {
-              const success = await rememberAboutUser(
-                userId,
-                parameters.memory,
-                parameters.type || 'general'
-              )
-              result = { success, message: success ? 'Memory saved' : 'Failed to save memory' }
-            } else {
-              result = { success: false, message: 'Missing user ID or memory content' }
-            }
-            break
-
           default:
             console.warn('[VIC Tool] Unknown tool:', name)
             sendToolMessage({
@@ -247,10 +224,6 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
     const configId = process.env.NEXT_PUBLIC_HUME_CONFIG_ID
 
-    // Generate conversation ID for this session
-    conversationIdRef.current = `conv_${Date.now()}`
-    topicsDiscussedRef.current = []
-
     // Get personalized greeting for returning users
     const personalizedGreeting = userProfile ? generatePersonalizedGreeting(userProfile) : ''
     const isReturning = userProfile?.isReturningUser || false
@@ -261,25 +234,23 @@ YOUR KNOWLEDGE BASE:
 - 372 articles about London's secrets, hidden gems, and forgotten stories
 - The complete Thorney Island book (56 chapters about the hidden island beneath Westminster)
 - Topics spanning Roman London to Victorian innovations, Shakespeare's theatres to hidden rivers
+- A knowledge graph connecting all topics: places, people, eras, buildings, rivers
 
-${isReturning ? `USER CONTEXT: This is a returning visitor. ${personalizedGreeting}` : 'USER CONTEXT: This is a new visitor. After your brief introduction, ask for their name so you can remember them next time.'}
+${isReturning ? `USER CONTEXT: This is a returning visitor. ${personalizedGreeting}` : 'USER CONTEXT: This is a new visitor. After your brief introduction, ask for their name.'}
 
-MEMORY - VERY IMPORTANT:
-- You have the ability to REMEMBER things about users for future conversations
-- When a user tells you their name, IMMEDIATELY use the remember_user tool with type "name"
-- When they express interest in a topic, use remember_user with type "interest"
-- When they share a preference, use remember_user with type "preference"
-- Example: User says "I'm Sarah and I love Tudor history" → Call remember_user twice:
-  1. remember_user(memory: "User's name is Sarah", type: "name")
-  2. remember_user(memory: "Very interested in Tudor history", type: "interest")
+MEMORY (AUTOMATIC):
+- I remember everything from our conversations automatically
+- Names, interests, and topics discussed are captured without any special commands
+- Just talk naturally - the system handles memory
+- For returning visitors, I know who they are and what we discussed
 
-${isReturning ? 'Since this is a returning user, acknowledge what you remember about them!' : 'For new visitors: After introducing yourself, ask "And what should I call you?" - then remember their name for next time!'}
+${isReturning ? 'Since this is a returning user, acknowledge what you remember about them!' : 'For new visitors: After introducing yourself, ask "And what should I call you?"'}
 
 CRITICAL - ALWAYS SEARCH FIRST:
 - ALWAYS use the search_knowledge tool BEFORE answering any question about London
-- This tool uses semantic search to find the most relevant content from your writings
-- Even if you think you know the answer, SEARCH FIRST to get accurate details from your actual articles
-- The search understands meaning, not just keywords - "Victorian entertainment near Parliament" will find the Royal Aquarium
+- This tool searches both articles AND the knowledge graph for related topics
+- Even if you think you know the answer, SEARCH FIRST to get accurate details
+- The search understands meaning AND relationships between topics
 
 PERSONA:
 - You ARE Vic Keegan speaking about your life's work
@@ -317,9 +288,9 @@ ${isReturning ? '' : `EXAMPLE OPENING FOR NEW VISITORS:
 
 Remember:
 1. ASK FOR THEIR NAME (new visitors) or USE THEIR NAME (returning visitors)
-2. REMEMBER important things they tell you using the remember_user tool
-3. SEARCH FIRST using search_knowledge
-4. Give DETAILED answers based on your actual content`
+2. SEARCH FIRST using search_knowledge - your answers come from the knowledge graph
+3. Give DETAILED answers based on your actual content
+4. Suggest related topics that the graph reveals`
 
     try {
       await connect({
@@ -339,8 +310,9 @@ Remember:
   }, [connect, accessToken, userProfile])
 
   const handleDisconnect = useCallback(async () => {
-    // Store conversation in Supermemory before disconnecting
-    if (userId && conversationIdRef.current && messages.length > 0) {
+    // Store conversation messages in Zep before disconnecting
+    // Zep automatically extracts facts from messages
+    if (userId && messages.length > 0) {
       const conversationMessages = messages
         .filter((m: any) => m.type === 'user_message' || m.type === 'assistant_message')
         .map((m: any) => ({
@@ -349,15 +321,11 @@ Remember:
         }))
         .filter(m => m.content)
 
-      if (conversationMessages.length > 0) {
-        await storeConversation(
-          userId,
-          conversationIdRef.current,
-          conversationMessages,
-          topicsDiscussedRef.current
-        )
-        console.log('[VIC] Conversation stored in Supermemory')
+      // Store each message in Zep (facts are extracted automatically)
+      for (const msg of conversationMessages) {
+        await storeMessage(userId, msg.content, msg.role)
       }
+      console.log('[VIC] Conversation stored in Zep - facts extracted automatically')
     }
 
     disconnect()
