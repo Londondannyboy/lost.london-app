@@ -288,19 +288,24 @@ export function VictorianTranscript({ messages, isConnected, showDebug = false }
                           <span style={{ color: '#7a6540' }}>{formatTime(log.created_at)}</span>
                         </div>
 
-                        {/* Facts */}
+                        {/* Facts mentioned in response */}
                         {log.facts_checked && log.facts_checked.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {log.facts_checked.slice(0, 3).map((fact, i) => (
-                              <div
-                                key={i}
-                                className="flex items-center gap-1.5 text-xs py-0.5 px-2"
-                                style={{ background: 'rgba(45, 74, 45, 0.08)', color: '#3d5a3d', borderRadius: '2px' }}
-                              >
-                                <span>✓</span>
-                                <span>{fact}</span>
-                              </div>
-                            ))}
+                          <div className="mt-2">
+                            <div className="text-xs mb-1" style={{ color: '#654321', fontStyle: 'italic' }}>
+                              Facts mentioned:
+                            </div>
+                            <div className="space-y-1">
+                              {log.facts_checked.slice(0, 3).map((fact, i) => (
+                                <div
+                                  key={i}
+                                  className="flex items-center gap-1.5 text-xs py-0.5 px-2"
+                                  style={{ background: 'rgba(101, 67, 33, 0.08)', color: '#654321', borderRadius: '2px' }}
+                                >
+                                  <span>•</span>
+                                  <span>{fact}</span>
+                                </div>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </div>
