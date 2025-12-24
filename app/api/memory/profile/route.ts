@@ -50,10 +50,11 @@ export async function POST(request: NextRequest) {
     const interests: string[] = []
     const preferences: string[] = []
     const articleTitles: string[] = []
-    const seenCategories = new Set<string>()
+    const seenTopics = new Set<string>()
 
     for (const memory of memories) {
-      const content = memory.content || ''
+      // Supermemory returns 'memory' field (natural language summary) or 'content'
+      const content = memory.memory || memory.content || ''
       const type = memory.metadata?.type || ''
       const categories = memory.metadata?.categories || []
 
@@ -72,17 +73,14 @@ export async function POST(request: NextRequest) {
 
       // Extract interests from article views - use categories as topics
       if (type === 'article_view') {
-        // Get article title for context
         const titleMatch = content.match(/viewed article: "([^"]+)"/)
         if (titleMatch && articleTitles.length < 5) {
           articleTitles.push(titleMatch[1])
         }
-
-        // Get categories as interests
         if (Array.isArray(categories)) {
           categories.forEach((cat: string) => {
-            if (cat && !seenCategories.has(cat.toLowerCase())) {
-              seenCategories.add(cat.toLowerCase())
+            if (cat && !seenTopics.has(cat.toLowerCase())) {
+              seenTopics.add(cat.toLowerCase())
               interests.push(cat)
             }
           })
@@ -102,6 +100,30 @@ export async function POST(request: NextRequest) {
       // Extract preferences
       if (type === 'preference') {
         preferences.push(content.replace('[PREFERENCE] ', ''))
+      }
+
+      // NEW: Extract topics from natural language memory summaries
+      // Supermemory's AI creates summaries like "User is interested in Roman history"
+      if (!type && content) {
+        // Pattern: "interested in X" or "about X topics"
+        const interestedMatch = content.match(/interested in ([^,.]+)/i)
+        if (interestedMatch) {
+          const topic = interestedMatch[1].trim()
+          if (topic && !seenTopics.has(topic.toLowerCase())) {
+            seenTopics.add(topic.toLowerCase())
+            interests.push(topic)
+          }
+        }
+
+        // Pattern: "asked about X" or "about X topics"
+        const aboutMatch = content.match(/(?:asked |talked |discussed )?about ([^,.]+?)(?:\s+topics?)?$/i)
+        if (aboutMatch) {
+          const topic = aboutMatch[1].trim()
+          if (topic && topic.length > 2 && !seenTopics.has(topic.toLowerCase())) {
+            seenTopics.add(topic.toLowerCase())
+            interests.push(topic)
+          }
+        }
       }
     }
 
