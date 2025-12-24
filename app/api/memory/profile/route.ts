@@ -129,13 +129,20 @@ export async function POST(request: NextRequest) {
 
     console.log('[Memory] Extracted - interests:', interests.length, 'articles:', articleTitles.length)
 
+    // Debug: include sample of raw memories in response
+    const debugMemories = memories.slice(0, 3).map((m: any) => ({
+      memory: m.memory || m.content,
+      type: m.metadata?.type,
+    }))
+
     return NextResponse.json({
       isReturningUser: true,
       userName,
-      interests: interests.slice(0, 10), // Top 10 interests
+      interests: interests.slice(0, 10),
       preferences,
       recentArticles: articleTitles,
       memoryCount: memories.length,
+      _debug: debugMemories,
     })
   } catch (error) {
     console.error('[Memory] Profile fetch error:', error)
