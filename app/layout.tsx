@@ -4,18 +4,24 @@ import { authClient } from '@/lib/auth/client'
 import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth/react/ui'
 import { BetaBadge } from '@/components/BetaBadge'
 import { ConsentBanner } from '@/components/ConsentBanner'
+import { LogoBadge } from '@/components/LogoBadge'
 
 export const metadata: Metadata = {
   title: "Lost London | Discover London's Hidden Stories",
   description: "Explore Vic Keegan's Lost London - 372 articles about London's hidden history, secret gems, and fascinating stories. Interactive maps, walking routes, and more.",
   keywords: ["London history", "hidden London", "London walks", "London guide", "Vic Keegan", "Lost London"],
   authors: [{ name: "Vic Keegan" }],
+  icons: {
+    icon: "/Lost London Logo.png",
+    apple: "/Lost London Logo.png",
+  },
   openGraph: {
     type: "website",
     locale: "en_GB",
     title: "Lost London | Discover London's Hidden Stories",
     description: "Explore Vic Keegan's Lost London - interactive maps, walking routes, and fascinating stories.",
     siteName: "Lost London",
+    images: ["/Lost London Logo.png"],
   },
 }
 
@@ -32,6 +38,7 @@ export default function RootLayout({
           redirectTo="/"
           social={{ providers: ['google', 'github'] }}
         >
+          <LogoBadge />
           <BetaBadge />
           {children}
           <ConsentBanner />
