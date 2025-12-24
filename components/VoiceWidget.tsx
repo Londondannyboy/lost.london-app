@@ -52,7 +52,7 @@ function ArticleCard({ article }: { article: Article }) {
 // Tool handlers below process calls from Hume when tools are invoked
 
 function VoiceInterface({ accessToken }: { accessToken: string }) {
-  const { connect, disconnect, status, messages, sendToolMessage, isPlaying } = useVoice()
+  const { connect, disconnect, status, messages, sendToolMessage, sendUserInput, isPlaying } = useVoice()
   const { data: session, isPending: authLoading } = authClient.useSession()
   const user = session?.user || null
   const [manualConnected, setManualConnected] = useState(false)
@@ -61,6 +61,9 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [userId, setUserId] = useState<string>('')
   const [preferredName, setPreferredName] = useState<string | null>(null)
+  const [pendingTopic, setPendingTopic] = useState<string | null>(null)
+  const [relatedArticles, setRelatedArticles] = useState<Array<{title: string, slug: string}>>([])
+  const [lastAssistantMessage, setLastAssistantMessage] = useState<string>('')
   const conversationIdRef = useRef<string>('')
   const topicsDiscussedRef = useRef<string[]>([])
 
@@ -107,8 +110,69 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
 
   useEffect(() => {
     if (status.value === 'connected') setManualConnected(true)
-    if (status.value === 'disconnected') setManualConnected(false)
+    if (status.value === 'disconnected') {
+      setManualConnected(false)
+      setRelatedArticles([]) // Clear related articles on disconnect
+    }
   }, [status.value])
+
+  // Track assistant messages and fetch related articles when VIC finishes speaking
+  useEffect(() => {
+    // Find the last assistant message
+    const assistantMessages = messages.filter(m => m.type === 'assistant_message')
+    const lastMsg = assistantMessages[assistantMessages.length - 1]
+
+    if (lastMsg && 'message' in lastMsg) {
+      const content = (lastMsg.message as any)?.content
+      if (content && content !== lastAssistantMessage) {
+        setLastAssistantMessage(content)
+
+        // When VIC stops speaking (isPlaying becomes false), search for related articles
+        // We use a small delay to ensure VIC has finished
+        if (!isPlaying && content.length > 50) {
+          const searchForRelated = async () => {
+            try {
+              // Extract key terms from VIC's response for search
+              const response = await fetch('/api/london-tools/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  query: content.substring(0, 200), // Use first part of response as query
+                  limit: 3,
+                }),
+              })
+              const data = await response.json()
+              if (data.articles && data.articles.length > 0) {
+                setRelatedArticles(data.articles.slice(0, 3).map((a: any) => ({
+                  title: a.title,
+                  slug: a.slug,
+                })))
+              }
+            } catch (err) {
+              console.debug('[VIC] Failed to fetch related articles:', err)
+            }
+          }
+
+          // Delay to ensure VIC has finished speaking
+          const timer = setTimeout(searchForRelated, 1000)
+          return () => clearTimeout(timer)
+        }
+      }
+    }
+  }, [messages, isPlaying, lastAssistantMessage])
+
+  // Send pending topic once connected
+  useEffect(() => {
+    if (status.value === 'connected' && pendingTopic) {
+      // Small delay to let the connection stabilize
+      const timer = setTimeout(() => {
+        console.log('[VIC] Sending pending topic:', pendingTopic)
+        sendUserInput(`Tell me about ${pendingTopic}`)
+        setPendingTopic(null)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [status.value, pendingTopic, sendUserInput])
 
   // Handle Hume tool calls
   useEffect(() => {
@@ -457,6 +521,20 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
     }
   }, [disconnect, userId, messages])
 
+  // Handle topic click - connect if needed, then send topic
+  const handleTopicClick = useCallback(async (topic: string) => {
+    console.log('[VIC] Topic clicked:', topic)
+    if (status.value === 'connected') {
+      // Already connected - send the topic immediately
+      sendUserInput(`Tell me about ${topic}`)
+    } else {
+      // Not connected - store topic and connect
+      setPendingTopic(topic)
+      // The effect above will send it once connected
+      handleConnect()
+    }
+  }, [status.value, sendUserInput, handleConnect])
+
   const isConnected = status.value === 'connected' || manualConnected
   const isConnecting = status.value === 'connecting' && !manualConnected
   const isError = status.value === 'error'
@@ -758,30 +836,61 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
         </div>
       )}
 
-      {/* Topics VIC can discuss - minimal startup style */}
+      {/* Topics VIC can discuss - clickable to start conversation */}
       <div className="text-center mb-6 w-full max-w-lg">
-        <p className="text-gray-500 text-sm mb-3">
-          {isConnected ? "Ask about:" : "Topics:"}
+        <p className="text-white/60 text-sm mb-3">
+          {isConnected ? "Ask about:" : "Tap a topic to start:"}
         </p>
         <div className="flex flex-wrap justify-center gap-2">
           {[
             'Thorney Island',
             'Shakespeare',
-            'Medieval',
-            'Tudor',
+            'Medieval London',
+            'Tudor History',
             'Hidden Rivers',
-            'Roman',
-            'Victorian',
+            'Roman London',
+            'Victorian Era',
           ].map((topic) => (
-            <span
+            <button
               key={topic}
-              className="px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-full hover:bg-black hover:text-white transition-all cursor-default"
+              onClick={() => handleTopicClick(topic)}
+              disabled={isConnecting}
+              className={`px-4 py-2 text-sm rounded-full transition-all duration-200 ${
+                isConnecting
+                  ? 'bg-gray-600 text-gray-400 cursor-wait'
+                  : 'bg-white/10 text-white/80 hover:bg-[#f4ead5] hover:text-[#2a231a] hover:scale-105 cursor-pointer border border-white/20 hover:border-[#8b6914]'
+              }`}
             >
               {topic}
-            </span>
+            </button>
           ))}
         </div>
       </div>
+
+      {/* Related Articles - shown after VIC responds */}
+      {isConnected && relatedArticles.length > 0 && (
+        <div className="text-center mb-6 w-full max-w-lg animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <p className="text-white/50 text-xs mb-2 uppercase tracking-wider">
+            Related Articles
+          </p>
+          <div className="flex flex-wrap justify-center gap-2">
+            {relatedArticles.map((article) => (
+              <a
+                key={article.slug}
+                href={`/article/${article.slug}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 text-xs bg-white/5 text-white/70 rounded-full border border-white/10 hover:bg-white/20 hover:text-white hover:border-white/30 transition-all duration-200 flex items-center gap-1.5"
+              >
+                <svg className="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="truncate max-w-[150px]">{article.title}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Victorian Transcript with Debug Panel */}
       <VictorianTranscript

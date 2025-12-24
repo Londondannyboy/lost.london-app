@@ -7,6 +7,7 @@ import { EraBadge } from '@/components/EraBadge'
 import { LocationCard } from '@/components/LocationCard'
 import { BookmarkButton } from '@/components/BookmarkButton'
 import { ArticleVoiceWidget } from '@/components/ArticleVoiceWidget'
+import { ArticleTracker } from '@/components/ArticleTracker'
 
 interface Article {
   id: number
@@ -128,6 +129,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="min-h-screen bg-stone-50 text-black">
+      {/* Track article view in Supermemory */}
+      <ArticleTracker article={{ id: article.id, title: article.title, slug: article.slug, categories: article.categories }} />
+
       {/* Masthead */}
       <header className="bg-black text-white">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -341,29 +345,51 @@ function formatContent(content: string): string {
   const urlPattern = /(https?:\/\/[^\s<>"{}|\\^`[\]]+)/g
 
   // Convert URLs to anchor tags
-  const contentWithLinks = content.replace(urlPattern, (url) => {
-    // Clean up trailing punctuation that might be part of sentence
+  let processedContent = content.replace(urlPattern, (url) => {
     let cleanUrl = url
     let trailing = ''
     if (/[.,;:!?)]$/.test(url)) {
       trailing = url.slice(-1)
       cleanUrl = url.slice(0, -1)
     }
-    // Create readable link text (domain + shortened path)
     const displayText = cleanUrl.length > 50
       ? cleanUrl.substring(0, 47) + '...'
       : cleanUrl
-    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-700 hover:text-blue-900 underline">${displayText}</a>${trailing}`
+    return `<a href="${cleanUrl}" target="_blank" rel="noopener noreferrer" class="text-red-700 hover:text-red-900 underline">${displayText}</a>${trailing}`
   })
 
-  // Split into paragraphs
-  const paragraphs = contentWithLinks
+  // Handle photo captions - patterns like "(picture, above)" or "(above, right)"
+  processedContent = processedContent.replace(
+    /\((?:picture,?\s*)?(?:above|below|left|right|top|bottom)(?:,?\s*(?:left|right|above|below))?\)/gi,
+    '<span class="block text-sm text-gray-500 italic my-4 text-center">$&</span>'
+  )
+
+  // Handle standalone image references like ". [Caption]" at end of line
+  processedContent = processedContent.replace(
+    /\.\s*\n([A-Z][^.\n]{10,60})\n/g,
+    '.\n<figcaption class="text-sm text-gray-500 italic my-2">$1</figcaption>\n'
+  )
+
+  // Handle blockquotes - lines that look like quotes (start with " or end with attribution)
+  processedContent = processedContent.replace(
+    /"([^"]{20,}?)"\s*[-–—]\s*([A-Za-z\s.]+)/g,
+    '<blockquote class="border-l-4 border-red-700 pl-4 my-6 italic text-gray-700">"$1"<footer class="text-sm text-gray-500 mt-2 not-italic">— $2</footer></blockquote>'
+  )
+
+  // Split into paragraphs - handle both \n\n and single \n patterns
+  const paragraphs = processedContent
     .split(/\n\n+/)
     .filter(p => p.trim())
     .map(p => {
-      // Replace single newlines with proper spacing
-      const formatted = p.replace(/\n/g, '<br class="mb-2">')
-      return `<p class="mb-6 text-gray-800 leading-loose">${formatted}</p>`
+      // Skip if it's already wrapped in a tag (blockquote, figcaption, etc.)
+      if (p.trim().startsWith('<')) {
+        return p
+      }
+
+      // Replace single newlines with <br> for line breaks within paragraphs
+      const formatted = p.replace(/\n/g, '<br />')
+
+      return `<p class="mb-6">${formatted}</p>`
     })
     .join('')
 

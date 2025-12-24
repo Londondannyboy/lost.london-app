@@ -45,6 +45,7 @@ async function main() {
   console.log('Fetching articles with placeholder or missing images...\n')
 
   // Find articles with placeholder images OR missing images
+  // GeoChris.jpg is the default placeholder used during initial import
   const articles = await sql`
     SELECT id, title, url, featured_image_url
     FROM articles
@@ -53,6 +54,7 @@ async function main() {
       OR featured_image_url = ''
       OR featured_image_url LIKE '%holder%'
       OR featured_image_url LIKE '%penci%'
+      OR featured_image_url LIKE '%GeoChris%'
     )
     ORDER BY id
   `

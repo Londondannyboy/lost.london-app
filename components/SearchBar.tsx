@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { authClient } from '@/lib/auth/client'
+import { getUserId } from '@/lib/hybrid-memory'
 
 interface Article {
   id: number
@@ -25,6 +27,23 @@ export function SearchBar() {
   const [searched, setSearched] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const { data: session } = authClient.useSession()
+
+  // Track search in Supermemory (fire and forget)
+  const trackSearch = (searchQuery: string, resultsCount: number) => {
+    const userId = session?.user?.id || getUserId()
+    if (!userId) return
+
+    fetch('/api/memory/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId,
+        type: 'search',
+        data: { query: searchQuery, resultsCount },
+      }),
+    }).catch(() => { /* silent fail */ })
+  }
 
   // Fetch categories on mount
   useEffect(() => {
@@ -55,7 +74,11 @@ export function SearchBar() {
         body: JSON.stringify({ query: query.trim() }),
       })
       const data = await response.json()
-      setResults(data.articles || [])
+      const articles = data.articles || []
+      setResults(articles)
+
+      // Track search in Supermemory
+      trackSearch(query.trim(), articles.length)
     } catch (error) {
       console.error('Search failed:', error)
       setResults([])
