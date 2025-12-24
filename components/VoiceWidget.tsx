@@ -88,19 +88,22 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
   }, [user])
 
   // Fetch preferred name for authenticated users
+  // Reset when user changes to prevent stale data
   useEffect(() => {
+    // Always reset preferred name when user changes
+    setPreferredName(null)
+
     if (user) {
+      console.log('[VIC] Fetching preferred name for user:', user.email, user.name)
       fetch('/api/user/preferred-name')
         .then(res => res.json())
         .then(data => {
-          if (data.preferred_name) {
-            setPreferredName(data.preferred_name)
-            console.log('[VIC] Preferred name:', data.preferred_name)
-          }
+          console.log('[VIC] Preferred name response:', data)
+          setPreferredName(data.preferred_name || null)
         })
         .catch(console.error)
     }
-  }, [user])
+  }, [user?.id]) // Use user.id to ensure we refetch when user actually changes
 
   useEffect(() => {
     if (status.value === 'connected') setManualConnected(true)
@@ -299,14 +302,21 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
     }
 
     // Use preferred name if set, otherwise extract from display name
-    const extractedFirstName = extractFirstName(user?.name)
+    // IMPORTANT: Get the name directly from the current user session, not from stale state
+    const currentUserName = user?.name
+    const currentUserEmail = user?.email
+    const extractedFirstName = extractFirstName(currentUserName)
     const firstName = preferredName || extractedFirstName
     const hasValidName = !!firstName
 
-    // Debug logging
-    console.log('[VIC Auth] Preferred name:', preferredName)
-    console.log('[VIC Auth] Extracted from display:', extractedFirstName)
-    console.log('[VIC Auth] Using name:', firstName)
+    // Debug logging - log EVERYTHING to diagnose the issue
+    console.log('[VIC Auth] ====== CONNECTION DEBUG ======')
+    console.log('[VIC Auth] Current user email:', currentUserEmail)
+    console.log('[VIC Auth] Current user name:', currentUserName)
+    console.log('[VIC Auth] Preferred name state:', preferredName)
+    console.log('[VIC Auth] Extracted first name:', extractedFirstName)
+    console.log('[VIC Auth] Final firstName to use:', firstName)
+    console.log('[VIC Auth] ================================')
 
     // Get personalized greeting for returning users
     const personalizedGreeting = userProfile ? generatePersonalizedGreeting(userProfile) : ''
@@ -390,21 +400,31 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
         ? `${firstName}|${uniqueSessionId}`
         : uniqueSessionId
 
-      console.log('[VIC Session] Creating session:', { firstName, uniqueSessionId, sessionIdWithName })
+      console.log('[VIC Session] ====== CONNECT DEBUG ======')
+      console.log('[VIC Session] firstName:', firstName)
+      console.log('[VIC Session] userId:', userId)
+      console.log('[VIC Session] sessionIdWithName:', sessionIdWithName)
+      console.log('[VIC Session] systemPrompt first 500 chars:', systemPrompt.substring(0, 500))
+      console.log('[VIC Session] ================================')
 
-      await connect({
-        auth: { type: 'accessToken', value: accessToken },
+      const connectOptions = {
+        auth: { type: 'accessToken' as const, value: accessToken },
         configId: configId,
         sessionSettings: {
           type: 'session_settings' as const,
           systemPrompt,
           customSessionId: sessionIdWithName,
-          // Tools are now configured in Hume dashboard, not here
         }
-      })
+      }
+
+      console.log('[VIC Session] Connect options:', JSON.stringify(connectOptions, null, 2).substring(0, 1000))
+
+      await connect(connectOptions)
       setManualConnected(true)
+      console.log('[VIC Session] Connected successfully')
     } catch (e: any) {
       console.error('[VIC] Connect error:', e?.message || e)
+      console.error('[VIC] Full error:', e)
       setManualConnected(false)
     }
   }, [connect, accessToken, userProfile, user])
