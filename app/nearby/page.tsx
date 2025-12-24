@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Header } from '@/components/Header'
 import Link from 'next/link'
 
 interface NearbyArticle {
@@ -80,9 +79,7 @@ export default function NearbyPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <Header />
-
+    <div>
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-serif text-gradient-london mb-4">

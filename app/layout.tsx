@@ -5,6 +5,8 @@ import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth/react/ui'
 import { BetaBadge } from '@/components/BetaBadge'
 import { ConsentBanner } from '@/components/ConsentBanner'
 import { LogoBadge } from '@/components/LogoBadge'
+import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: "Lost London | Discover London's Hidden Stories",
@@ -40,7 +42,11 @@ export default function RootLayout({
         >
           <LogoBadge />
           <BetaBadge />
-          {children}
+          <Header />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
           <ConsentBanner />
         </NeonAuthUIProvider>
       </body>

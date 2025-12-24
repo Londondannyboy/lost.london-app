@@ -1,5 +1,4 @@
 import { getSeriesBySlug, getArticlesBySeries } from '@/lib/db'
-import { Header } from '@/components/Header'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 
@@ -30,9 +29,7 @@ export default async function SeriesDetailPage({ params }: Props) {
   const articles = await getArticlesBySeries(series.id)
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Header />
-
+    <div className="bg-stone-50">
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Series header */}
         <div className="mb-8">

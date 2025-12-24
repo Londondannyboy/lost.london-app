@@ -1,4 +1,3 @@
-import { Header } from '@/components/Header'
 import { ThorneyIslandVoice } from '@/components/ThorneyIslandVoice'
 import { neon } from '@neondatabase/serverless'
 
@@ -36,9 +35,7 @@ export default async function ThorneyIslandPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Header />
-
+    <div className="bg-stone-50">
       {/* Hero Section */}
       <section className="relative">
         <div className="absolute inset-0">

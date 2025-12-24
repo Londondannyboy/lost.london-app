@@ -1,7 +1,6 @@
 import { VoiceWidget } from '@/components/VoiceWidget'
 import { FeaturedArticles } from '@/components/FeaturedArticles'
 import { SearchBar } from '@/components/SearchBar'
-import { UserButton } from '@/components/UserButton'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
@@ -13,22 +12,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white text-black">
-      {/* Minimal Header */}
-      <header className="border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="font-bold text-xl tracking-tight">
-            lost.london
-          </Link>
-          <nav className="flex items-center gap-6 text-sm text-gray-600">
-            <Link href="/thorney-island" className="hover:text-black transition-colors">Book</Link>
-            <Link href="/series/lost-london" className="hover:text-black transition-colors">Articles</Link>
-            <Link href="/map" className="hover:text-black transition-colors">Map</Link>
-            <UserButton />
-          </nav>
-        </div>
-      </header>
-
+    <div className="bg-white text-black">
       {/* Hero Section - Voice First */}
       <section className="relative min-h-[80vh] flex items-center justify-center bg-[#1a1612]">
         {/* Dark River Map Background */}
@@ -236,16 +220,6 @@ export default function HomePage() {
           </p>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-8">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="font-bold text-lg mb-1">lost.london</p>
-          <p className="text-gray-400 text-sm">
-            AI voice guide to London history
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }

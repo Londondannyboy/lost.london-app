@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Header } from '@/components/Header'
 import { useBookmarks } from '@/hooks/useBookmarks'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -150,8 +149,7 @@ export default function MyLondonPage() {
 
   if (bookmarksLoading || !isLoggedIn) {
     return (
-      <div className="min-h-screen bg-stone-50">
-        <Header />
+      <div className="bg-stone-50">
         <main className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center py-16">
             <div className="text-gray-500">Loading your London...</div>
@@ -162,9 +160,7 @@ export default function MyLondonPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Header />
-
+    <div className="bg-stone-50">
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-red-700 to-red-900 text-white rounded-xl p-8 mb-8">

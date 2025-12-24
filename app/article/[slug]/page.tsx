@@ -128,24 +128,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const restContent = sentences.slice(1).join(' ')
 
   return (
-    <div className="min-h-screen bg-stone-50 text-black">
+    <div className="bg-stone-50 text-black">
       {/* Track article view in Supermemory */}
       <ArticleTracker article={{ id: article.id, title: article.title, slug: article.slug, categories: article.categories }} />
-
-      {/* Masthead */}
-      <header className="bg-black text-white">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-          <Link href="/" className="font-serif text-2xl tracking-tight">
-            Lost London
-          </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link href="/map" className="hover:text-gray-300">Map</Link>
-            <Link href="/timeline" className="hover:text-gray-300">Timeline</Link>
-            <Link href="/series" className="hover:text-gray-300">Series</Link>
-            <Link href="/routes" className="hover:text-gray-300">Routes</Link>
-          </nav>
-        </div>
-      </header>
 
       {/* Article Header */}
       <div className="bg-white border-b border-gray-200">
@@ -316,24 +301,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="bg-black text-white mt-12">
-        <div className="max-w-6xl mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <Link href="/" className="font-serif text-xl">
-              Lost London
-            </Link>
-            <nav className="flex gap-6 text-sm text-gray-400">
-              <Link href="/map" className="hover:text-white">Map</Link>
-              <Link href="/timeline" className="hover:text-white">Timeline</Link>
-              <Link href="/series" className="hover:text-white">Series</Link>
-              <Link href="/routes" className="hover:text-white">Routes</Link>
-              <Link href="/bookmarks" className="hover:text-white">Bookmarks</Link>
-            </nav>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

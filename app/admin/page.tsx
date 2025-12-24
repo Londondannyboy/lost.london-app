@@ -185,19 +185,13 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 text-gray-900">
-      {/* Header */}
-      <header className="bg-[#2a231a] text-[#f4ead5] py-4 px-6">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-xl font-bold">VIC Admin</h1>
-            <p className="text-sm text-[#a89878]">Knowledge Base Management</p>
-          </div>
-          <Link href="/" className="text-sm hover:underline">Back to site</Link>
-        </div>
-      </header>
-
+    <div className="bg-stone-50 text-gray-900">
       <main className="max-w-6xl mx-auto p-6">
+        {/* Admin Title */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">VIC Admin</h1>
+          <p className="text-gray-500">Knowledge Base Management</p>
+        </div>
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="bg-white p-4 rounded-lg shadow">

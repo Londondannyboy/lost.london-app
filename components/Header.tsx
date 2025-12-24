@@ -72,6 +72,16 @@ export function Header() {
             {session?.user ? (
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-white/20 relative z-50 pointer-events-auto">
                 <Link
+                  href="/dashboard"
+                  className={`px-3 py-2 text-sm transition-colors ${
+                    pathname === '/dashboard'
+                      ? 'text-white bg-white/10'
+                      : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  History
+                </Link>
+                <Link
                   href="/my-london"
                   className={`px-3 py-2 text-sm transition-colors ${
                     pathname === '/my-london'
@@ -185,6 +195,17 @@ export function Header() {
               <div className="border-t border-white/20 mt-2 pt-2">
                 {session?.user ? (
                   <>
+                    <Link
+                      href="/dashboard"
+                      className={`block px-4 py-3 text-base ${
+                        pathname === '/dashboard'
+                          ? 'text-white bg-white/10'
+                          : 'text-gray-300 hover:text-white hover:bg-white/5'
+                      }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      History
+                    </Link>
                     <Link
                       href="/my-london"
                       className={`block px-4 py-3 text-base ${

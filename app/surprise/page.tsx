@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Header } from '@/components/Header'
 import Link from 'next/link'
 
 interface Article {
@@ -46,9 +45,7 @@ export default function SurprisePage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Header />
-
+    <div className="bg-stone-50">
       <main className="max-w-3xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">

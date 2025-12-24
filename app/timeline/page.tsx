@@ -1,5 +1,4 @@
 import { getEraStats, getArticlesByEra } from '@/lib/db'
-import { Header } from '@/components/Header'
 import { TimelineVoiceSection } from '@/components/TimelineVoiceSection'
 import Link from 'next/link'
 
@@ -62,9 +61,7 @@ export default async function TimelinePage({
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Header />
-
+    <div className="bg-stone-50">
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-12">
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-4">

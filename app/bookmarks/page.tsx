@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Header } from '@/components/Header'
 import { useBookmarks } from '@/hooks/useBookmarks'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -57,8 +56,7 @@ export default function BookmarksPage() {
   // Show loading while checking auth
   if (bookmarksLoading || !isLoggedIn) {
     return (
-      <div className="min-h-screen bg-stone-50">
-        <Header />
+      <div className="bg-stone-50">
         <main className="max-w-4xl mx-auto px-4 py-8">
           <div className="text-center py-16">
             <div className="text-gray-500">Loading...</div>
@@ -69,9 +67,7 @@ export default function BookmarksPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <Header />
-
+    <div className="bg-stone-50">
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-serif font-bold text-gray-900 mb-2">

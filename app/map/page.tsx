@@ -1,5 +1,4 @@
 import { getArticlesWithLocation } from '@/lib/db'
-import { Header } from '@/components/Header'
 import { MapPageClient } from '@/components/MapPageClient'
 
 export const metadata = {
@@ -27,8 +26,7 @@ export default async function MapPage({
     : undefined
 
   return (
-    <div className="min-h-screen flex flex-col bg-stone-50">
-      <Header />
+    <div className="flex flex-col bg-stone-50">
       <MapPageClient
         articles={articles}
         selectedEra={params.era}
