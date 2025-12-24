@@ -52,7 +52,7 @@ function ArticleCard({ article }: { article: Article }) {
 // Tool handlers below process calls from Hume when tools are invoked
 
 function VoiceInterface({ accessToken }: { accessToken: string }) {
-  const { connect, disconnect, status, messages, sendToolMessage, sendUserInput, isPlaying } = useVoice()
+  const { connect, disconnect, status, messages, sendToolMessage, sendUserInput, sendAssistantInput, isPlaying } = useVoice()
   const { data: session, isPending: authLoading } = authClient.useSession()
   const user = session?.user || null
   const [manualConnected, setManualConnected] = useState(false)
@@ -517,12 +517,28 @@ FINAL REMINDER: If a detail isn't in the search results, DO NOT state it. Say "M
       await connect(connectOptions)
       setManualConnected(true)
       console.log('[VIC Session] Connected successfully')
+
+      // Send personalized greeting ourselves (Hume's auto-greeting ignores our system prompt)
+      // Small delay to ensure connection is stable
+      setTimeout(() => {
+        let greeting: string
+        if (firstName && lastTopics.length > 0) {
+          greeting = `Welcome back ${firstName}! Last time you were exploring ${lastTopics[0]}. Shall we continue with that, or discover something new today?`
+        } else if (firstName) {
+          greeting = `Hello ${firstName}, lovely to meet you! I'm VIC, your guide to London's hidden history. What would you like to explore?`
+        } else {
+          greeting = `Hello! I'm VIC, your guide to London's hidden history. What should I call you?`
+        }
+        console.log('[VIC Session] Sending personalized greeting:', greeting)
+        sendAssistantInput(greeting)
+      }, 500)
+
     } catch (e: any) {
       console.error('[VIC] Connect error:', e?.message || e)
       console.error('[VIC] Full error:', e)
       setManualConnected(false)
     }
-  }, [connect, accessToken, userProfile, user])
+  }, [connect, accessToken, userProfile, user, sendAssistantInput])
 
   const handleDisconnect = useCallback(async () => {
     // Disconnect immediately - don't wait for storage
