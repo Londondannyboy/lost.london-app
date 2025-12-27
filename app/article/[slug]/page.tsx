@@ -129,7 +129,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
   return (
     <div className="bg-stone-50 text-black">
-      {/* Track article view in Supermemory */}
+      {/* Article view tracking placeholder */}
       <ArticleTracker article={{ id: article.id, title: article.title, slug: article.slug, categories: article.categories }} />
 
       {/* Article Header */}

@@ -226,7 +226,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
             })
             result = await response.json()
 
-            // Track topics discussed for Supermemory
+            // Track topics discussed for memory context
             if (args.query) {
               topicsDiscussedRef.current.push(args.query)
             }
@@ -281,7 +281,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
             break
 
           case 'remember_user':
-            // Store memory in Supermemory (explicit user facts)
+            // Store memory in Zep (explicit user facts)
             if (userId && args.memory) {
               const success = await rememberAboutUser(
                 userId,
@@ -354,7 +354,7 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
     let lastTopics: string[] = []
     if (userId) {
       try {
-        // Use Zep for user memory (Supermemory removed)
+        // Use Zep for user memory
         const memoryResponse = await fetch(`/api/zep/user?userId=${encodeURIComponent(userId)}`)
         if (memoryResponse.ok) {
           const memoryData = await memoryResponse.json()

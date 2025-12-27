@@ -1,8 +1,7 @@
 /**
  * Zep memory integration for VIC - persistent user memory
- * Replaces Supermemory with Zep's automatic fact extraction
  *
- * Key difference from Supermemory:
+ * How it works:
  * - Zep automatically extracts facts from conversations
  * - No explicit "remember" calls needed
  * - Just send messages, Zep handles the rest

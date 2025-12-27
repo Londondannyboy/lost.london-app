@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { authClient } from '@/lib/auth/client'
-import { getUserId } from '@/lib/supermemory'
+import { getUserId } from '@/lib/hybrid-memory'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 

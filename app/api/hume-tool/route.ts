@@ -120,7 +120,7 @@ async function searchKnowledge(query: string): Promise<string> {
 async function rememberUser(memory: string, type: string, userId?: string): Promise<string> {
   console.log(`[Hume Tool] remember_user: "${memory}" (type: ${type})`)
 
-  // For now, just acknowledge - you can integrate with Supermemory later
+  // For now, just acknowledge - Zep handles memory via CLM backend
   return `I'll remember that: ${memory}`
 }
 
