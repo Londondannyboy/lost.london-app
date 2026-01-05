@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
       LIMIT ${limit}
     ` as any[]
 
-    // Get unique topics (deduplicated queries)
+    // Get unique topics (deduplicated queries, filtering affirmations)
+    // Exclude short responses and common affirmations that aren't real topics
     const uniqueTopics = await sql`
       SELECT
         LOWER(query) as topic,
@@ -38,6 +39,12 @@ export async function GET(request: NextRequest) {
         MAX(article_slug) as article_slug
       FROM user_queries
       WHERE user_id = ${userId}
+        AND LENGTH(query) > 3
+        AND LOWER(TRIM(query)) NOT IN (
+          'yes', 'yes.', 'no', 'no.', 'ok', 'okay', 'sure', 'yeah', 'yep', 'nope',
+          'thanks', 'thank you', 'cool', 'great', 'nice', 'good', 'right',
+          'tell me more', 'go on', 'continue', 'more', 'what else'
+        )
       GROUP BY LOWER(query)
       ORDER BY count DESC, last_asked DESC
       LIMIT 10

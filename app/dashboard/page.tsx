@@ -50,7 +50,6 @@ export default function DashboardPage() {
   const [recommendedArticles, setRecommendedArticles] = useState<Article[]>([])
   const [zepFacts, setZepFacts] = useState<ZepFact[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'conversations' | 'topics'>('conversations')
 
   // Redirect to sign-in if not logged in (after loading completes)
   useEffect(() => {
@@ -106,7 +105,6 @@ export default function DashboardPage() {
   }
 
   const fetchRecommendations = async (topics: UniqueTopic[]) => {
-    // Use top topics to find recommendations
     const topTopics = topics.slice(0, 3).map(t => t.topic).join(' ')
     const viewedSlugs = topics.map(t => t.article_slug).filter(Boolean)
 
@@ -122,7 +120,6 @@ export default function DashboardPage() {
       const data = await res.json()
 
       if (data.success || data.articles) {
-        // Filter out already viewed articles
         const recommendations = (data.articles || []).filter(
           (a: Article) => !viewedSlugs.includes(a.slug)
         ).slice(0, 5)
@@ -202,30 +199,6 @@ export default function DashboardPage() {
           />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 border-b border-gray-200">
-          <button
-            onClick={() => setActiveTab('conversations')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'conversations'
-                ? 'border-b-2 border-slate-700 text-slate-700'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Recent Conversations
-          </button>
-          <button
-            onClick={() => setActiveTab('topics')}
-            className={`px-4 py-2 font-medium transition-colors ${
-              activeTab === 'topics'
-                ? 'border-b-2 border-slate-700 text-slate-700'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Topics & Articles
-          </button>
-        </div>
-
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => (
@@ -237,135 +210,96 @@ export default function DashboardPage() {
           </div>
         ) : (
           <>
-            {/* Conversations Tab */}
-            {activeTab === 'conversations' && (
-              <div>
-                {queries.length > 0 ? (
-                  <div className="space-y-3">
-                    {queries.map(query => (
-                      <div
-                        key={query.id}
-                        className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-all"
-                      >
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="text-lg">💬</span>
-                              <span className="text-gray-700 font-medium">
-                                "{query.query}"
-                              </span>
-                            </div>
-                            {query.article_title && query.article_slug && (
-                              <Link
-                                href={`/article/${query.article_slug}`}
-                                className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-red-700 transition-colors group"
-                              >
-                                <span>📄</span>
-                                <span className="underline group-hover:no-underline">{query.article_title}</span>
-                                <span className="text-gray-400 group-hover:text-red-500">→</span>
-                              </Link>
-                            )}
-                          </div>
-                          <span className="text-xs text-gray-400 whitespace-nowrap">
-                            {formatDate(query.created_at)}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-                    <div className="text-4xl mb-3">💬</div>
-                    <h3 className="font-medium text-gray-900 mb-1">No conversations yet</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Ask VIC about London history and your questions will appear here
-                    </p>
+            {/* Topics Section - Clickable chips */}
+            {uniqueTopics.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+                <h2 className="font-serif font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
+                  <span>🗺️</span> Topics You've Explored
+                </h2>
+                <div className="flex flex-wrap gap-2">
+                  {uniqueTopics.map((topic, i) => (
                     <Link
-                      href="/"
-                      className="inline-block text-sm text-red-700 hover:text-red-800"
+                      key={i}
+                      href={topic.article_slug ? `/article/${topic.article_slug}` : '#'}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        topic.article_slug
+                          ? 'bg-gradient-to-r from-slate-100 to-red-50 text-slate-700 border border-slate-200 hover:border-red-300 hover:shadow-sm'
+                          : 'bg-gray-100 text-gray-600 cursor-default'
+                      }`}
                     >
-                      Talk to VIC
+                      <span className="capitalize">{topic.topic}</span>
+                      {topic.count > 1 && (
+                        <span className="ml-1.5 text-xs text-slate-500">×{topic.count}</span>
+                      )}
                     </Link>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             )}
 
-            {/* Topics Tab */}
-            {activeTab === 'topics' && (
-              <div>
-                {uniqueTopics.length > 0 ? (
-                  <div className="space-y-4">
-                    <p className="text-sm text-gray-600">
-                      Topics you've explored with VIC. Click to read the full article:
-                    </p>
-                    <div className="space-y-3">
-                      {uniqueTopics.map((topic, i) => (
-                        <div
-                          key={i}
-                          className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-all"
-                        >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-gray-900 capitalize">
-                                  {topic.topic}
-                                </span>
-                                {topic.count > 1 && (
-                                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                                    Asked {topic.count}x
-                                  </span>
-                                )}
-                              </div>
-                              {topic.article_title && topic.article_slug && (
-                                <Link
-                                  href={`/article/${topic.article_slug}`}
-                                  className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-red-700 transition-colors group"
-                                >
-                                  <span>📄</span>
-                                  <span className="underline group-hover:no-underline">{topic.article_title}</span>
-                                  <span className="text-gray-400 group-hover:text-red-500">→</span>
-                                </Link>
-                              )}
-                            </div>
-                            <span className="text-xs text-gray-400 whitespace-nowrap">
-                              {formatDate(topic.last_asked)}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-                    <div className="text-4xl mb-3">🗺️</div>
-                    <h3 className="font-medium text-gray-900 mb-1">No topics yet</h3>
-                    <p className="text-sm text-gray-500 mb-4">
-                      Chat with VIC about London history to build your topic list
-                    </p>
-                    <Link
-                      href="/"
-                      className="inline-block text-sm text-red-700 hover:text-red-800"
+            {/* Recent Conversations */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+              <h2 className="font-serif font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
+                <span>💬</span> Recent Conversations
+              </h2>
+              {queries.length > 0 ? (
+                <div className="space-y-3">
+                  {queries.map(query => (
+                    <div
+                      key={query.id}
+                      className="border-b border-gray-100 pb-3 last:border-0 last:pb-0"
                     >
-                      Talk to VIC
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="text-gray-700 font-medium mb-1">
+                            "{query.query}"
+                          </div>
+                          {query.article_title && query.article_slug && (
+                            <Link
+                              href={`/article/${query.article_slug}`}
+                              className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-red-700 transition-colors group"
+                            >
+                              <span>📄</span>
+                              <span className="underline group-hover:no-underline">{query.article_title}</span>
+                              <span className="text-gray-400 group-hover:text-red-500">→</span>
+                            </Link>
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-400 whitespace-nowrap">
+                          {formatDate(query.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-3xl mb-2">💬</div>
+                  <p className="text-sm text-gray-500 mb-3">
+                    Ask VIC about London history and your questions will appear here
+                  </p>
+                  <Link
+                    href="/"
+                    className="inline-block text-sm text-red-700 hover:text-red-800 font-medium"
+                  >
+                    Talk to VIC →
+                  </Link>
+                </div>
+              )}
+            </div>
 
             {/* Recommended Articles Section */}
             {recommendedArticles.length > 0 && (
-              <div className="mt-8">
-                <h2 className="text-lg font-serif font-bold text-gray-900 mb-4">
-                  Recommended For You
+              <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
+                <h2 className="font-serif font-bold text-gray-900 text-lg mb-4 flex items-center gap-2">
+                  <span>✨</span> Recommended For You
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {recommendedArticles.map(article => (
                     <Link
                       key={article.id}
                       href={`/article/${article.slug}`}
-                      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow flex gap-3 group"
+                      className="flex gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
                     >
                       {article.featured_image_url ? (
                         <img
@@ -394,52 +328,50 @@ export default function DashboardPage() {
 
             {/* What VIC Remembers - Collapsed Section */}
             {zepFacts.length > 0 && (
-              <div className="mt-8">
-                <details className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-                  <summary className="px-6 py-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between">
-                    <h3 className="font-serif font-bold text-gray-900 flex items-center gap-2">
-                      <span>🧠</span> What VIC Remembers About You
-                    </h3>
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
-                      {zepFacts.length} insights
-                    </span>
-                  </summary>
-                  <div className="px-6 pb-4 border-t border-gray-100">
-                    <div className="space-y-2 max-h-64 overflow-y-auto mt-4">
-                      {zepFacts.slice(0, 20).map((fact, i) => (
-                        <div key={i} className="flex items-start gap-2 py-1 border-b border-gray-100 last:border-0">
-                          <span className="text-gray-400">•</span>
-                          <span className="text-sm text-gray-700 flex-1">{fact.fact}</span>
-                          <span className="text-xs text-gray-400 whitespace-nowrap">
-                            {formatDate(fact.created_at)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    {/* Clear History */}
-                    <div className="text-center pt-4 border-t mt-4">
-                      <button
-                        onClick={async () => {
-                          if (confirm('Are you sure you want to clear all your VIC conversation history? This cannot be undone.')) {
-                            try {
-                              await fetch(`https://vic-clm.vercel.app/api/user/${session?.user?.id}/clear`, {
-                                method: 'DELETE',
-                              })
-                              setZepFacts([])
-                              alert('History cleared successfully')
-                            } catch (error) {
-                              alert('Failed to clear history')
-                            }
-                          }
-                        }}
-                        className="text-sm text-red-600 hover:text-red-800 underline"
-                      >
-                        Clear all history
-                      </button>
-                    </div>
+              <details className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <summary className="px-6 py-4 cursor-pointer hover:bg-gray-50 flex items-center justify-between">
+                  <h3 className="font-serif font-bold text-gray-900 flex items-center gap-2">
+                    <span>🧠</span> What VIC Remembers About You
+                  </h3>
+                  <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+                    {zepFacts.length} insights
+                  </span>
+                </summary>
+                <div className="px-6 pb-4 border-t border-gray-100">
+                  <div className="space-y-2 max-h-64 overflow-y-auto mt-4">
+                    {zepFacts.slice(0, 20).map((fact, i) => (
+                      <div key={i} className="flex items-start gap-2 py-1 border-b border-gray-100 last:border-0">
+                        <span className="text-gray-400">•</span>
+                        <span className="text-sm text-gray-700 flex-1">{fact.fact}</span>
+                        <span className="text-xs text-gray-400 whitespace-nowrap">
+                          {formatDate(fact.created_at)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                </details>
-              </div>
+                  {/* Clear History */}
+                  <div className="text-center pt-4 border-t mt-4">
+                    <button
+                      onClick={async () => {
+                        if (confirm('Are you sure you want to clear all your VIC conversation history? This cannot be undone.')) {
+                          try {
+                            await fetch(`https://vic-clm.vercel.app/api/user/${session?.user?.id}/clear`, {
+                              method: 'DELETE',
+                            })
+                            setZepFacts([])
+                            alert('History cleared successfully')
+                          } catch (error) {
+                            alert('Failed to clear history')
+                          }
+                        }
+                      }}
+                      className="text-sm text-red-600 hover:text-red-800 underline"
+                    >
+                      Clear all history
+                    </button>
+                  </div>
+                </div>
+              </details>
             )}
           </>
         )}
