@@ -134,10 +134,10 @@ export default function DashboardPage() {
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-slate-700 to-slate-900 text-white rounded-xl p-8 mb-8">
           <h1 className="text-3xl md:text-4xl font-serif font-bold mb-2">
-            Your Journey with VIC
+            My History
           </h1>
           <p className="text-white/80 mb-4">
-            Your conversations and discoveries about London's hidden history
+            Your conversations and discoveries with VIC
           </p>
 
           {/* Stats */}

@@ -48,7 +48,7 @@ export function Header() {
                   href="/dashboard"
                   className="px-3 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
                 >
-                  My Journey
+                  My History
                 </Link>
                 <button
                   onClick={async () => {
@@ -137,7 +137,7 @@ export function Header() {
                       className="block px-4 py-3 text-base text-white bg-white/5 hover:bg-white/10"
                       onClick={() => setMenuOpen(false)}
                     >
-                      My Journey
+                      My History
                     </Link>
                     <div className="px-4 py-3 flex items-center justify-between">
                       <span className="text-sm text-gray-300">{session.user.email}</span>
