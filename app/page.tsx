@@ -173,53 +173,74 @@ export default function HomePage() {
       </section>
 
       {/* Books Grid */}
-      <section className="py-16 border-b border-gray-200 bg-gray-50">
+      <section className="py-16 border-b border-gray-200 bg-gradient-to-b from-amber-50 to-white">
         <div className="max-w-5xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-8">The Books</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold mb-3">Own the Books</h2>
+            <p className="text-gray-600 max-w-xl mx-auto">
+              Take London's hidden history home. Vic Keegan's Lost London series is available at Waterstones.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 mb-10">
             <a
-              href="https://www.amazon.co.uk/Lost-London-Vic-Keegan/dp/0954076273"
+              href="https://www.waterstones.com/author/vic-keegan/4942784"
               target="_blank"
               rel="noopener noreferrer"
               className="group"
             >
-              <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-3">
+              <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-3 rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
                 <img
                   src="/lost-london-cover-1.jpg"
                   alt="Lost London Volume 1"
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <p className="text-sm font-medium group-hover:underline">Volume 1 →</p>
+              <p className="text-sm font-medium group-hover:underline">Volume 1</p>
             </a>
             <a
-              href="https://www.amazon.co.uk/Lost-London-2-Vic-Keegan/dp/0954076281"
+              href="https://www.waterstones.com/author/vic-keegan/4942784"
               target="_blank"
               rel="noopener noreferrer"
               className="group"
             >
-              <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-3">
+              <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-3 rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
                 <img
                   src="/lost-london-cover-2.jpg"
                   alt="Lost London Volume 2"
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <p className="text-sm font-medium group-hover:underline">Volume 2 →</p>
+              <p className="text-sm font-medium group-hover:underline">Volume 2</p>
             </a>
-            <div className="opacity-60">
-              <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-3 relative">
+            <a
+              href="https://www.waterstones.com/author/vic-keegan/4942784"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group"
+            >
+              <div className="aspect-[3/4] overflow-hidden bg-gray-100 mb-3 rounded-lg shadow-lg group-hover:shadow-xl transition-shadow">
                 <img
                   src="/lost-london-cover-3.jpg"
-                  alt="Lost London Volume 3"
-                  className="w-full h-full object-cover grayscale"
+                  alt="Thorney Island"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="bg-black text-white text-xs px-3 py-1 font-medium">Coming Soon</span>
-                </div>
               </div>
-              <p className="text-sm text-gray-400">Volume 3</p>
-            </div>
+              <p className="text-sm font-medium group-hover:underline">Thorney Island</p>
+            </a>
+          </div>
+          {/* Buy CTA */}
+          <div className="text-center">
+            <a
+              href="https://www.waterstones.com/author/vic-keegan/4942784"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-3 bg-amber-900 text-white px-8 py-4 rounded-lg hover:bg-amber-800 transition-colors font-bold text-lg"
+            >
+              <span>Buy at Waterstones</span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
           </div>
         </div>
       </section>

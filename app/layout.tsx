@@ -5,6 +5,7 @@ import { NeonAuthUIProvider } from '@neondatabase/neon-js/auth/react/ui'
 import { BetaBadge } from '@/components/BetaBadge'
 import { ConsentBanner } from '@/components/ConsentBanner'
 import { LogoBadge } from '@/components/LogoBadge'
+import { BuyBookBanner } from '@/components/BuyBookBanner'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 
@@ -47,6 +48,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <BuyBookBanner />
           <ConsentBanner />
         </NeonAuthUIProvider>
       </body>
