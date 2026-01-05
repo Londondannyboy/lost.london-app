@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 
 const WATERSTONES_URL = 'https://www.waterstones.com/author/vic-keegan/4942784'
+const INGRAMSPARK_URL = 'https://shop.ingramspark.com/b/084?params=NwS1eOq0iGczj35Zm0gAawIEcssFFDCeMABwVB9c3gn'
 
 export function BuyBookBanner() {
   const [dismissed, setDismissed] = useState(true) // Start hidden to avoid flash
@@ -40,14 +41,22 @@ export function BuyBookBanner() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <a
             href={WATERSTONES_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-4 py-2 bg-white text-amber-900 font-bold text-sm rounded hover:bg-amber-100 transition-colors"
+            className="px-3 py-2 bg-white text-amber-900 font-bold text-xs md:text-sm rounded hover:bg-amber-100 transition-colors"
           >
-            Buy at Waterstones
+            Waterstones
+          </a>
+          <a
+            href={INGRAMSPARK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-2 bg-amber-600 text-white font-bold text-xs md:text-sm rounded hover:bg-amber-500 transition-colors"
+          >
+            Fornøy Island
           </a>
           <button
             onClick={handleDismiss}
