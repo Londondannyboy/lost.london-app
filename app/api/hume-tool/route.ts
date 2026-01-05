@@ -140,7 +140,8 @@ async function searchKnowledge(query: string): Promise<string> {
     if (topResult.source_id && topResult.source_type === 'article') {
       const relatedTopics = await getRelatedTopicsForArticle(topResult.source_id)
       if (relatedTopics.length > 0) {
-        response += `\nSUGGESTED_TOPICS: When you've covered this, offer: "Would you like to hear about ${formatTopicSuggestions(relatedTopics)}?"\n`
+        response += `\nSUGGESTED_TOPICS: ${relatedTopics.join(' | ')}\n`
+        response += `(Weave these naturally into your response, e.g. "...which reminds me of ${relatedTopics[0]}, or perhaps you'd fancy hearing about ${relatedTopics[1] || relatedTopics[0]}?")\n`
       }
     }
 
