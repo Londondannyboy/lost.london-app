@@ -78,8 +78,8 @@ function ThorneyVoiceInterface({ accessToken, chunks }: { accessToken: string; c
   const handleConnect = useCallback(async () => {
     if (!accessToken) return
 
-    // Use Thorney Island specific Hume config
-    const configId = process.env.NEXT_PUBLIC_HUME_THORNEY_CONFIG_ID || 'b728bdad-583e-4232-94b2-3d6cb9ce8c1c'
+    // Use Thorney Island specific Hume config (falls back to main VIC config if not set)
+    const configId = process.env.NEXT_PUBLIC_HUME_THORNEY_CONFIG_ID || process.env.NEXT_PUBLIC_HUME_CONFIG_ID || '0edbfbe6-37dc-4082-a38b-c193ebadc982'
 
     // Build content from chunks for additional context
     const contentSummary = chunks
