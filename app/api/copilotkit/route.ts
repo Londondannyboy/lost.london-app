@@ -1,24 +1,25 @@
 import { NextRequest } from 'next/server'
 import {
   CopilotRuntime,
-  GoogleGenerativeAIAdapter,
   copilotRuntimeNextJSAppRouterEndpoint,
 } from '@copilotkit/runtime'
 
 /**
- * CopilotKit Runtime Endpoint - Hybrid Setup
+ * CopilotKit Runtime Endpoint - Full Agent Mode
  *
  * Architecture:
- * - LLM calls: Gemini (via GoogleGenerativeAIAdapter)
- * - Actions: VIC CLM backend (article search, etc.)
+ * - All LLM + tools handled by VIC CLM (Pydantic AI + Groq/Llama)
+ * - Same backend serves both Hume voice and CopilotKit text
+ * - Unified experience: article search, Zep memory, VIC persona
  *
- * This gives us:
- * - Fast, capable chat via Gemini
- * - Access to CLM's article search and tools
- * - Same actions available to both voice (Hume) and text (CopilotKit)
+ * The CLM uses Pydantic AI's to_ag_ui() to expose a full agent,
+ * not just actions. This means:
+ * - LLM calls happen on CLM (Groq/Llama - super fast)
+ * - Tools (article search) run on CLM
+ * - State syncs via AG-UI protocol
  */
 
-// Get the CLM remote endpoint URL for actions
+// Get the CLM remote endpoint URL
 const getRemoteEndpoint = () => {
   if (process.env.COPILOTKIT_REMOTE_ENDPOINT) {
     return process.env.COPILOTKIT_REMOTE_ENDPOINT
@@ -37,9 +38,6 @@ const runtime = new CopilotRuntime({
 export const POST = async (req: NextRequest) => {
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
     runtime,
-    serviceAdapter: new GoogleGenerativeAIAdapter({
-      model: 'gemini-2.0-flash-exp',
-    }),
     endpoint: '/api/copilotkit',
   })
 
