@@ -149,11 +149,19 @@ export default function PrivacyPage() {
           <section className="mb-12">
             <h2 className="text-2xl font-bold mb-4">10. Contact</h2>
             <p className="text-gray-600 mb-4">
-              For privacy inquiries or to exercise your data rights:
+              For privacy inquiries, GDPR requests, or questions about the service:
+            </p>
+            <p className="text-gray-600 mb-4">
+              <strong>Email:</strong>{' '}
+              <a href="mailto:hello@fractional.quest" className="text-black underline hover:no-underline">hello@fractional.quest</a>
+            </p>
+            <p className="text-gray-600 mb-4">
+              <strong>GDPR & Data Requests:</strong>{' '}
+              <a href="mailto:dan@fractional.quest" className="text-black underline hover:no-underline">dan@fractional.quest</a>
             </p>
             <p className="text-gray-600">
-              <strong>Fractional.quest</strong><br />
-              Website: <a href="https://fractional.quest" className="text-black underline hover:no-underline">fractional.quest</a>
+              <strong>Website:</strong>{' '}
+              <a href="https://fractional.quest" className="text-black underline hover:no-underline" target="_blank" rel="noopener noreferrer">fractional.quest</a>
             </p>
           </section>
 
