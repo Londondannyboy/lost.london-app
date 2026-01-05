@@ -166,13 +166,15 @@ export default function DashboardPage() {
   }
 
   // Build graph data from Zep facts
+  type NodeType = 'user' | 'preference' | 'skill' | 'job' | 'company' | 'fact'
+
   const buildGraphData = (facts: ZepFact[], userName: string) => {
-    const nodes: Array<{id: string, type: string, label: string}> = []
+    const nodes: Array<{id: string, type: NodeType, label: string}> = []
     const edges: Array<{source: string, target: string, type: string, label?: string}> = []
     const topicSet = new Set<string>()
 
     // Add user as center node
-    nodes.push({ id: 'user', type: 'user', label: userName })
+    nodes.push({ id: 'user', type: 'user' as NodeType, label: userName })
 
     // Extract topics from facts
     facts.forEach((fact, i) => {
@@ -188,7 +190,7 @@ export default function DashboardPage() {
         if (topic.length > 2 && topic.length < 40 && !topicSet.has(topic.toLowerCase())) {
           topicSet.add(topic.toLowerCase())
           const nodeId = `topic-${i}`
-          nodes.push({ id: nodeId, type: 'preference', label: topic })
+          nodes.push({ id: nodeId, type: 'preference' as NodeType, label: topic })
           edges.push({ source: 'user', target: nodeId, type: 'interested_in', label: 'interested in' })
         }
         return
@@ -201,7 +203,7 @@ export default function DashboardPage() {
         if (location.length > 2 && location.length < 40 && !topicSet.has(location.toLowerCase())) {
           topicSet.add(location.toLowerCase())
           const nodeId = `loc-${i}`
-          nodes.push({ id: nodeId, type: 'skill', label: location })
+          nodes.push({ id: nodeId, type: 'skill' as NodeType, label: location })
           edges.push({ source: 'user', target: nodeId, type: 'explored' })
         }
       }

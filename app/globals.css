@@ -302,3 +302,17 @@ h1, h2 {
     line-height: 1.85;
   }
 }
+
+/* Fix summary text color for light backgrounds */
+details summary {
+  color: #1f2937 !important;
+}
+details[open] summary {
+  color: #1f2937 !important;
+}
+.bg-white summary,
+.bg-gray-50 summary,
+.bg-stone-50 summary {
+  color: #1f2937 !important;
+}
+
