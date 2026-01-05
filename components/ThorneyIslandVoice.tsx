@@ -27,20 +27,25 @@ function ThorneyVoiceInterface({ accessToken, chunks }: { accessToken: string; c
     const handleToolCall = async (toolCall: any) => {
       const { name, toolCallId, parameters } = toolCall
 
-      if (name === 'search_knowledge') {
+      // Use Thorney Island-specific endpoint for all searches
+      if (name === 'search_knowledge' || name === 'search_thorney_island') {
         try {
-          // Use semantic search with pgvector embeddings
-          const response = await fetch('/api/london-tools/semantic-search', {
+          // Use Thorney Island-specific search endpoint
+          const response = await fetch('/api/hume-tool-thorney', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(parameters || {}),
+            body: JSON.stringify({
+              name: 'search_thorney_island',
+              tool_call_id: toolCallId,
+              parameters: parameters,
+            }),
           })
           const result = await response.json()
 
           sendToolMessage({
             type: 'tool_response',
             toolCallId: toolCallId,
-            content: JSON.stringify(result),
+            content: result.content || JSON.stringify(result),
           })
         } catch (error) {
           sendToolMessage({
@@ -74,33 +79,42 @@ function ThorneyVoiceInterface({ accessToken, chunks }: { accessToken: string; c
     if (!accessToken) return
 
     // Use Thorney Island specific Hume config
-    const configId = '05e280de-8f00-4505-81e2-b25662a69a8d'
+    const configId = process.env.NEXT_PUBLIC_HUME_THORNEY_CONFIG_ID || 'b728bdad-583e-4232-94b2-3d6cb9ce8c1c'
 
     // Build content from chunks for additional context
     const contentSummary = chunks
-      .slice(0, 8)
-      .map(c => c.content.substring(0, 500))
+      .slice(0, 5)
+      .map(c => c.content.substring(0, 400))
       .join('\n\n---\n\n')
 
-    // Minimal context - vic-clm owns personality, we just provide Thorney Island book content
-    const systemPrompt = `THORNEY_ISLAND_CONTEXT:
-source: Thorney Island book by Vic Keegan
+    // Thorney Island-specific system prompt
+    const systemPrompt = `THORNEY_ISLAND_MODE:
+You are VIC, specifically discussing your book "Thorney Island" - the hidden island beneath Westminster.
 
-BOOK_CONTENT:
+SCOPE: You ONLY discuss Thorney Island topics:
+- The island itself and how it was formed by the River Tyburn
+- Westminster Abbey, Parliament, the Supreme Court
+- Devil's Acre, the Gatehouse Prison, William Caxton
+- Edward the Confessor, King Cnut, the medieval monks
+- The Painted Chamber, Jewel Tower, and lost palaces
+
+OFF_TOPIC_HANDLING:
+If someone asks about topics NOT related to Thorney Island (like the Royal Aquarium, Shakespeare's theatres, or other London topics):
+- Politely explain this version of you specialises in Thorney Island
+- Suggest they visit the main Lost London page to speak with your "other self" who knows about all 372 London articles
+- Phrase it naturally: "That's a fascinating topic, but I'm your Thorney Island guide today. My other self on the main page knows all about that - would you like to ask me about the island instead?"
+
+RESPONSE_VARIETY:
+Vary your phrasing. Use openers like:
+- "Ah, now Thorney Island..."
+- "The monks who lived here..."
+- "Let me tell you about this corner of the island..."
+- "Few people realise..."
+
+BOOK_EXCERPT:
 ${contentSummary}
 
-MODE: thorney_island_discussion
-User is exploring the Thorney Island book section.`
-
-    const tools = [
-      {
-        type: 'function' as const,
-        name: 'search_knowledge',
-        description: 'Search the complete London knowledge base including the Thorney Island book AND 372 London articles. Use this for any topic: Tyburn, Westminster Abbey, Devil\'s Acre, Royal Aquarium, Scotland Yard, etc.',
-        parameters: '{ "type": "object", "required": ["query"], "properties": { "query": { "type": "string", "description": "Search term like Tyburn, Westminster, aquarium, Scotland Yard, etc" } } }',
-        fallback_content: 'Unable to search the knowledge base at the moment.',
-      }
-    ]
+Start by warmly welcoming them to explore your Thorney Island book.`
 
     try {
       await connect({
@@ -109,7 +123,6 @@ User is exploring the Thorney Island book section.`
         sessionSettings: {
           type: 'session_settings' as const,
           systemPrompt,
-          tools,
         }
       })
       setManualConnected(true)
