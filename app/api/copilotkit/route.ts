@@ -1,28 +1,28 @@
 import { NextRequest } from 'next/server'
 import {
   CopilotRuntime,
+  GoogleGenerativeAIAdapter,
   copilotRuntimeNextJSAppRouterEndpoint,
 } from '@copilotkit/runtime'
 
 /**
- * CopilotKit Runtime Endpoint - Proxies to VIC CLM Backend
- *
- * This endpoint connects the CopilotKit frontend to the VIC CLM
- * running on Railway via the AG-UI protocol.
+ * CopilotKit Runtime Endpoint - Hybrid Setup
  *
  * Architecture:
- * - Frontend (CopilotKit) → This route → VIC CLM (Railway)
- * - Same backend serves both Hume voice and CopilotKit text
- * - Unified conversation, shared state, rich content
+ * - LLM calls: Gemini (via GoogleGenerativeAIAdapter)
+ * - Actions: VIC CLM backend (article search, etc.)
+ *
+ * This gives us:
+ * - Fast, capable chat via Gemini
+ * - Access to CLM's article search and tools
+ * - Same actions available to both voice (Hume) and text (CopilotKit)
  */
 
-// Get the CLM remote endpoint URL
+// Get the CLM remote endpoint URL for actions
 const getRemoteEndpoint = () => {
-  // Production: Use the configured remote endpoint
   if (process.env.COPILOTKIT_REMOTE_ENDPOINT) {
     return process.env.COPILOTKIT_REMOTE_ENDPOINT
   }
-  // Development: Fall back to local CLM
   return 'http://localhost:8000/copilotkit'
 }
 
@@ -37,6 +37,9 @@ const runtime = new CopilotRuntime({
 export const POST = async (req: NextRequest) => {
   const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
     runtime,
+    serviceAdapter: new GoogleGenerativeAIAdapter({
+      model: 'gemini-2.0-flash-exp',
+    }),
     endpoint: '/api/copilotkit',
   })
 
