@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@copilotkit/react-core": "^1.50.1",
+    "@copilotkit/react-ui": "^1.50.1",
+    "@copilotkit/runtime": "^1.50.1",
     "@getzep/zep-cloud": "^3.13.0",
     "@humeai/voice-react": "^0.2.11",
     "@neondatabase/neon-js": "^0.1.0-beta.19",

@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic'
 
 // Dynamically import 3D graph to avoid SSR issues
 const InterestGraph3D = dynamic(() => import('@/components/InterestGraph3D'), { ssr: false })
+import { InterestConfirmation } from '@/components/InterestConfirmation'
 
 interface UserQuery {
   id: number
@@ -210,6 +211,9 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Human-in-the-Loop: Pending Interest Confirmation */}
+        <InterestConfirmation onUpdate={fetchQueryHistory} />
 
         {/* 3D Interest Graph - Showcase Section */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 mb-8 shadow-sm">
