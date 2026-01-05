@@ -14,7 +14,17 @@ const VOYAGE_API_KEY = process.env.VOYAGE_API_KEY
 // Phonetic corrections for voice input
 const PHONETIC_CORRECTIONS: Record<string, string> = {
   'ignacio': 'ignatius', 'ignasio': 'ignatius', 'ignacius': 'ignatius',
-  'thorny': 'thorney', 'fawny': 'thorney', 'fauny': 'thorney', 'forney': 'thorney',
+  // Thorney Island - many phonetic variations
+  'thorny': 'thorney', 'thorny island': 'thorney island',
+  'fawny': 'thorney', 'fawny island': 'thorney island',
+  'fauny': 'thorney', 'fauny island': 'thorney island',
+  'forney': 'thorney', 'forney island': 'thorney island',
+  'fhorney': 'thorney', 'fhorney island': 'thorney island',
+  'thornie': 'thorney', 'thornie island': 'thorney island',
+  'thawny': 'thorney', 'thawny island': 'thorney island',
+  'thorn island': 'thorney island', 'thornee': 'thorney',
+  'thorney ireland': 'thorney island', 'forney ireland': 'thorney island',
+  // Other London places
   'tie burn': 'tyburn', 'tieburn': 'tyburn',
   'aquarim': 'aquarium', 'aquariam': 'aquarium',
   'royale': 'royal', 'cristal': 'crystal', 'crystle': 'crystal',
@@ -72,7 +82,27 @@ function formatTopicSuggestions(topics: string[]): string {
   return `${topics[0]}, ${topics[1]}, or ${topics[2]}`
 }
 
-async function searchKnowledge(query: string): Promise<string> {
+// Store user query in database (non-blocking)
+async function storeUserQuery(
+  userId: string | undefined,
+  query: string,
+  articleId?: number,
+  articleTitle?: string,
+  articleSlug?: string,
+  sessionId?: string
+) {
+  if (!userId) return
+  try {
+    await sql`
+      INSERT INTO user_queries (user_id, query, article_id, article_title, article_slug, session_id)
+      VALUES (${userId}, ${query}, ${articleId || null}, ${articleTitle || null}, ${articleSlug || null}, ${sessionId || null})
+    `
+  } catch (error) {
+    console.error('[Hume Tool] Failed to store query:', error)
+  }
+}
+
+async function searchKnowledge(query: string, userId?: string, sessionId?: string): Promise<string> {
   const normalizedQuery = normalizeQuery(query)
   console.log(`[Hume Tool] search_knowledge: "${query}" → "${normalizedQuery}"`)
 
@@ -122,6 +152,10 @@ async function searchKnowledge(query: string): Promise<string> {
     // Format results for voice response
     const topResult = results[0]
     const content = topResult.content.substring(0, 1500)
+
+    // Store query with linked article (non-blocking)
+    const articleSlug = topResult.metadata?.slug || topResult.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+    storeUserQuery(userId, query, topResult.source_id, topResult.title, articleSlug, sessionId)
 
     // Build response with article content
     let response = `Here's what I found about ${query}:\n\n`
@@ -192,9 +226,13 @@ export async function POST(request: NextRequest) {
 
     let result: string
 
+    // Extract userId from session if provided (passed by VoiceWidget)
+    const userId = params.user_id || body.user_id
+    const sessionId = params.session_id || body.session_id
+
     switch (toolName) {
       case 'search_knowledge':
-        result = await searchKnowledge(params.query || '')
+        result = await searchKnowledge(params.query || '', userId, sessionId)
         break
 
       case 'remember_user':

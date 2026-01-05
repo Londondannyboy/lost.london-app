@@ -7,9 +7,7 @@ import {
   getUserId,
   getUserProfile,
   rememberAboutUser,
-  storeMessageInZep,
   storeConversation,
-  generatePersonalizedGreeting,
   type UserProfile,
 } from '@/lib/hybrid-memory'
 import { VictorianTranscript } from './VictorianTranscript'
@@ -348,31 +346,30 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
     conversationIdRef.current = `conv_${Date.now()}`
     topicsDiscussedRef.current = []
 
-    // PRE-FETCH: Get user's memory/history from Zep BEFORE connecting
+    // PRE-FETCH: Get user's recent topics from our database
     // This lets VIC immediately greet with personalized context
     let userMemoryContext = ''
-    let lastTopics: string[] = []
+    let lastTopics: { topic: string; articleTitle?: string }[] = []
+    let visitCount = 0
+    let isReturningUser = false
+
     if (userId) {
       try {
-        // Use Zep for user memory
-        const memoryResponse = await fetch(`/api/zep/user?userId=${encodeURIComponent(userId)}`)
-        if (memoryResponse.ok) {
-          const memoryData = await memoryResponse.json()
-          console.log('[VIC Zep] User profile response:', memoryData)
-          if (memoryData.isReturningUser) {
-            if (memoryData.interests?.length > 0) {
-              lastTopics = memoryData.interests.slice(0, 3)
-              userMemoryContext = `\nUSER'S PREVIOUS INTERESTS: ${lastTopics.join(', ')}`
-            }
-            console.log('[VIC Zep] Returning user with interests:', lastTopics)
-          } else {
-            console.log('[VIC Zep] New user or no data')
+        // Fetch recent topics from our database
+        const recentResponse = await fetch('/api/user/recent-topics')
+        if (recentResponse.ok) {
+          const recentData = await recentResponse.json()
+          console.log('[VIC] Recent topics response:', recentData)
+          if (recentData.topics?.length > 0) {
+            lastTopics = recentData.topics.slice(0, 2) // Last 2 topics for suggestions
+            visitCount = recentData.visitCount || 0
+            isReturningUser = recentData.isReturning || visitCount > 0
+            userMemoryContext = `\nUSER'S RECENT QUERIES: ${lastTopics.map(t => t.topic).join(', ')}`
+            console.log('[VIC] Returning user with topics:', lastTopics)
           }
-        } else {
-          console.log('[VIC Zep] Profile fetch failed:', memoryResponse.status)
         }
       } catch (e) {
-        console.debug('[VIC Zep] Pre-fetch failed:', e)
+        console.debug('[VIC] Recent topics fetch failed:', e)
       }
     }
 
@@ -410,16 +407,26 @@ function VoiceInterface({ accessToken }: { accessToken: string }) {
     console.log('[VIC Auth] Final firstName to use:', firstName)
     console.log('[VIC Auth] ================================')
 
-    // Get personalized greeting for returning users
-    const personalizedGreeting = userProfile ? generatePersonalizedGreeting(userProfile) : ''
-    const isReturning = userProfile?.isReturningUser || false
-
     // Minimal context for vic-clm - all personality/behavior is in the CLM
+    const topicsList = lastTopics.map(t => t.topic).join(', ')
     const systemPrompt = `USER_CONTEXT:
 ${hasValidName ? `name: ${firstName}` : 'name: unknown'}
-${lastTopics.length > 0 ? `interests: ${lastTopics.join(', ')}` : ''}
-${isReturning ? 'status: returning_user' : 'status: new_user'}
+${topicsList ? `recent_topics: ${topicsList}` : ''}
+${isReturningUser ? `status: returning_user (visit #${visitCount + 1})` : 'status: new_user'}
 ${userMemoryContext ? `memory: ${userMemoryContext}` : ''}
+
+RETURNING_USER_GREETING:
+${isReturningUser && hasValidName ? `This is ${firstName}'s return visit. Greet them warmly but differently each time:
+- "Ah, ${firstName}! Wonderful to have you back exploring London with me."
+- "Welcome back, ${firstName}! I was just thinking about our last conversation."
+- "${firstName}! Delighted you've returned. Shall we pick up where we left off?"
+${topicsList ? `Offer to continue previous topics: "Last time you asked about ${topicsList}. Would you like to explore that further, or discover something new?"` : ''}` : ''}
+${isReturningUser && !hasValidName ? `This is a returning visitor. Greet warmly: "Ah, welcome back! Lovely to see you again."` : ''}
+
+PRONUNCIATION_NOTES:
+- "Thorney Island" may be heard as "thorny", "forney", "fhorney", "thawny" - always interpret as THORNEY ISLAND
+- If user mentions "Ireland" with any thorney-like word, they mean THORNEY ISLAND (beneath Westminster)
+- Thorney Island is the hidden island where Parliament, Westminster Abbey, and the Supreme Court now stand
 
 RESPONSE_VARIETY:
 Vary your opening phrases. Never use the same preamble twice in a row. Match the style to the topic:
@@ -437,6 +444,11 @@ TOPIC_TRANSITIONS:
   "That's tied to the Crystal Palace story, or we could explore the Victoria Street angle if you'd like."
 - Never use robotic phrasing like "Would you like to hear about X? Would you like to hear about Y?"
 - Keep it conversational, as one thought flowing into the next
+
+LISTENING_BEHAVIOR:
+- After speaking, pause and wait for the user to respond - they may need a moment to think
+- If offering topic choices, give the user ample time to decide
+- Don't rush to fill silence - let the conversation breathe naturally
 
 ROSIE_EASTER_EGG: If user says "Rosie", respond: "Ah, Rosie, my loving wife! I'll be home for dinner."`
 
