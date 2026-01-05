@@ -7,7 +7,9 @@ export const metadata = {
 }
 
 export default async function SeriesPage() {
-  const series = await getAllSeries()
+  const allSeries = await getAllSeries()
+  // Only show series with articles
+  const series = allSeries.filter((s: any) => s.article_count > 0)
 
   return (
     <div className="bg-stone-50">

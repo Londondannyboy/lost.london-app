@@ -107,32 +107,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Topics Grid */}
+      {/* Browse by Series */}
       <section className="py-16 border-b border-gray-200 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-8">Topics</h2>
-          <div className="grid md:grid-cols-4 gap-8">
-            {[
-              { title: 'Ancient & Medieval', topics: ['Roman baths', 'Medieval monks', "Britain's oldest door", 'Lost rivers'] },
-              { title: 'Tudor & Stuart', topics: ["Shakespeare's theatres", "Henry VIII's wine cellar", 'Mayflower voyage', 'Oldest wine shop'] },
-              { title: 'Victorian & Modern', topics: ['First skyscraper', 'Necropolis Railway', 'Crystal Palace', 'Monet on Thames'] },
-              { title: 'Hidden London', topics: ['Secret gardens', 'Old Bailey underground', 'Under Somerset House', 'Abandoned bridges'] },
-            ].map((section) => (
-              <div key={section.title}>
-                <h3 className="font-bold text-sm text-gray-400 uppercase tracking-wide mb-4">
-                  {section.title}
-                </h3>
-                <ul className="space-y-3">
-                  {section.topics.map((topic) => (
-                    <li key={topic}>
-                      <span className="text-gray-700 hover:text-black cursor-pointer transition-colors">
-                        {topic}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-2xl font-bold">Browse by Series</h2>
+            <Link
+              href="/series"
+              className="text-sm text-gray-500 hover:text-black transition-colors"
+            >
+              View all series →
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-4 gap-6">
+            <Link
+              href="/series/lost-london"
+              className="bg-white border border-gray-200 p-6 hover:border-black hover:shadow-md transition-all group"
+            >
+              <h3 className="font-bold text-lg mb-2 group-hover:underline">Lost London</h3>
+              <p className="text-sm text-gray-500 mb-3">232 articles</p>
+              <p className="text-sm text-gray-600">The complete Vic Keegan archive of hidden London stories.</p>
+            </Link>
+            <Link
+              href="/series/shakespeares-london"
+              className="bg-white border border-gray-200 p-6 hover:border-black hover:shadow-md transition-all group"
+            >
+              <h3 className="font-bold text-lg mb-2 group-hover:underline">Shakespeare's London</h3>
+              <p className="text-sm text-gray-500 mb-3">9 articles</p>
+              <p className="text-sm text-gray-600">Theatres, taverns, and tales from the Bard's city.</p>
+            </Link>
+            <Link
+              href="/series/river-thames"
+              className="bg-white border border-gray-200 p-6 hover:border-black hover:shadow-md transition-all group"
+            >
+              <h3 className="font-bold text-lg mb-2 group-hover:underline">River Thames</h3>
+              <p className="text-sm text-gray-500 mb-3">7 articles</p>
+              <p className="text-sm text-gray-600">London's artery through the ages.</p>
+            </Link>
+            <Link
+              href="/series/hidden-rivers"
+              className="bg-white border border-gray-200 p-6 hover:border-black hover:shadow-md transition-all group"
+            >
+              <h3 className="font-bold text-lg mb-2 group-hover:underline">Hidden Rivers</h3>
+              <p className="text-sm text-gray-500 mb-3">5 articles</p>
+              <p className="text-sm text-gray-600">The buried waterways beneath London's streets.</p>
+            </Link>
           </div>
         </div>
       </section>
