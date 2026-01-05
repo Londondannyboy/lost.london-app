@@ -1,9 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { authClient } from '@/lib/auth/client'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
+
+// Dynamically import KnowledgeGraph to avoid SSR issues
+const KnowledgeGraph = dynamic(() => import('@/components/KnowledgeGraph'), { ssr: false })
 
 interface UserQuery {
   id: number
@@ -159,6 +163,90 @@ export default function DashboardPage() {
     if (diffDays === 1) return 'Yesterday'
     if (diffDays < 7) return `${diffDays} days ago`
     return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  }
+
+  // Build graph data from Zep facts
+  const buildGraphData = (facts: ZepFact[], userName: string) => {
+    const nodes: Array<{id: string, type: string, label: string}> = []
+    const edges: Array<{source: string, target: string, type: string, label?: string}> = []
+    const topicSet = new Set<string>()
+
+    // Add user as center node
+    nodes.push({ id: 'user', type: 'user', label: userName })
+
+    // Extract topics from facts
+    facts.forEach((fact, i) => {
+      const factLower = fact.fact.toLowerCase()
+
+      // Skip generic/meta facts
+      if (factLower.includes('vic has') || factLower.includes('assistant')) return
+
+      // Extract topic from "interest in/about X" patterns
+      const interestMatch = fact.fact.match(/interest(?:ed)?\s+(?:in\s+)?(?:learning\s+)?(?:about\s+)?([^.]+)/i)
+      if (interestMatch) {
+        const topic = interestMatch[1].trim().replace(/^the\s+/i, '')
+        if (topic.length > 2 && topic.length < 40 && !topicSet.has(topic.toLowerCase())) {
+          topicSet.add(topic.toLowerCase())
+          const nodeId = `topic-${i}`
+          nodes.push({ id: nodeId, type: 'preference', label: topic })
+          edges.push({ source: 'user', target: nodeId, type: 'interested_in', label: 'interested in' })
+        }
+        return
+      }
+
+      // Extract location-based facts
+      const locationMatch = fact.fact.match(/(?:about|exploring|discussing)\s+([A-Z][^.]+)/i)
+      if (locationMatch) {
+        const location = locationMatch[1].trim()
+        if (location.length > 2 && location.length < 40 && !topicSet.has(location.toLowerCase())) {
+          topicSet.add(location.toLowerCase())
+          const nodeId = `loc-${i}`
+          nodes.push({ id: nodeId, type: 'skill', label: location })
+          edges.push({ source: 'user', target: nodeId, type: 'explored' })
+        }
+      }
+    })
+
+    // Limit nodes for performance
+    return {
+      nodes: nodes.slice(0, 25),
+      edges: edges.slice(0, 30)
+    }
+  }
+
+  // Extract clean topics from facts (filtering affirmations)
+  const extractTopicsFromFacts = (facts: ZepFact[]): string[] => {
+    const topics: string[] = []
+    const seen = new Set<string>()
+    const AFFIRMATIONS = ['yes', 'no', 'ok', 'okay', 'sure', 'yeah', 'yep', 'nope', 'confirmed', 'user']
+
+    facts.forEach(fact => {
+      const factLower = fact.fact.toLowerCase()
+
+      // Skip if it's about VIC or generic
+      if (factLower.includes('vic ') || factLower.includes('assistant')) return
+
+      // Extract topics from interest patterns
+      const match = fact.fact.match(/(?:interest|about|exploring|learning about)\s+([^.]+)/i)
+      if (match) {
+        let topic = match[1].trim()
+          .replace(/^the\s+/i, '')
+          .replace(/\s*\([^)]*\)/g, '')  // Remove parentheticals
+          .trim()
+
+        // Filter affirmations and short strings
+        if (topic.length < 3 || topic.length > 50) return
+        if (AFFIRMATIONS.some(a => topic.toLowerCase() === a)) return
+
+        const topicLower = topic.toLowerCase()
+        if (!seen.has(topicLower)) {
+          seen.add(topicLower)
+          topics.push(topic)
+        }
+      }
+    })
+
+    return topics.slice(0, 20)
   }
 
   // Show loading while checking auth
@@ -370,40 +458,49 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* Insights Tab - Zep Data */}
+            {/* Insights Tab - Zep Data with Visualizations */}
             {activeTab === 'insights' && (
               <div className="space-y-6">
-                {/* Interest Topics Word Cloud */}
+                {/* Knowledge Graph Visualization */}
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="font-serif font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <span>🧠</span> Your Interest Profile
+                    <span>🕸️</span> Your Interest Graph
                   </h3>
                   {zepFacts.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {/* Extract topics from facts and create a visual */}
-                      {zepFacts
-                        .filter(f => f.fact.toLowerCase().includes('interest'))
-                        .slice(0, 20)
-                        .map((fact, i) => {
-                          // Extract key topic from fact
-                          const match = fact.fact.match(/(?:about|in)\s+([^.]+)/i)
-                          const topic = match ? match[1].trim() : fact.fact.slice(0, 30)
-                          return (
-                            <span
-                              key={i}
-                              className="px-3 py-1.5 bg-gradient-to-r from-slate-100 to-red-50 text-slate-700 rounded-full text-sm border border-slate-200"
-                            >
-                              {topic}
-                            </span>
-                          )
-                        })}
-                    </div>
+                    <KnowledgeGraph
+                      data={buildGraphData(zepFacts, session?.user?.name || 'You')}
+                      width={700}
+                      height={400}
+                    />
                   ) : (
-                    <p className="text-gray-500 text-sm">No interests recorded yet. Chat with VIC to build your profile.</p>
+                    <div className="h-64 flex items-center justify-center text-gray-500">
+                      Chat with VIC to build your knowledge graph
+                    </div>
                   )}
                 </div>
 
-                {/* All Facts */}
+                {/* Interest Topics - Visual Tags */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <h3 className="font-serif font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <span>🧠</span> Topics You've Explored
+                  </h3>
+                  {zepFacts.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {extractTopicsFromFacts(zepFacts).map((topic, i) => (
+                        <span
+                          key={i}
+                          className="px-3 py-1.5 bg-gradient-to-r from-slate-100 to-red-50 text-slate-700 rounded-full text-sm border border-slate-200"
+                        >
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 text-sm">No topics recorded yet.</p>
+                  )}
+                </div>
+
+                {/* All Facts - Scrollable List */}
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="font-serif font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <span>📊</span> What VIC Remembers ({zepFacts.length} facts)
@@ -412,9 +509,9 @@ export default function DashboardPage() {
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {zepFacts.map((fact, i) => (
                         <div key={i} className="flex items-start gap-2 py-1 border-b border-gray-100 last:border-0">
-                          <span className="text-gray-300">•</span>
-                          <span className="text-sm text-gray-700">{fact.fact}</span>
-                          <span className="text-xs text-gray-400 whitespace-nowrap ml-auto">
+                          <span className="text-gray-400">•</span>
+                          <span className="text-sm text-gray-700 flex-1">{fact.fact}</span>
+                          <span className="text-xs text-gray-400 whitespace-nowrap">
                             {formatDate(fact.created_at)}
                           </span>
                         </div>
@@ -425,28 +522,32 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* Conversation Transcripts */}
+                {/* Conversation Transcripts - Fixed styling */}
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="font-serif font-bold text-gray-900 mb-4 flex items-center gap-2">
                     <span>📜</span> Conversation Transcripts ({zepConversations.length})
                   </h3>
                   {zepConversations.length > 0 ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {zepConversations.slice(0, 5).map((conv, i) => (
-                        <details key={i} className="border border-gray-200 rounded-lg">
-                          <summary className="px-4 py-2 cursor-pointer hover:bg-gray-50 flex items-center justify-between">
-                            <span className="text-sm font-medium">
+                        <details key={i} className="border border-gray-200 rounded-lg overflow-hidden">
+                          <summary className="px-4 py-3 cursor-pointer bg-gray-50 hover:bg-gray-100 flex items-center justify-between text-gray-900">
+                            <span className="text-sm font-medium text-gray-900">
                               Session {formatDate(conv.created_at)}
                             </span>
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-600 bg-gray-200 px-2 py-0.5 rounded">
                               {conv.messages?.length || 0} messages
                             </span>
                           </summary>
-                          <div className="px-4 py-2 bg-gray-50 border-t max-h-48 overflow-y-auto">
+                          <div className="px-4 py-3 bg-white border-t max-h-48 overflow-y-auto">
                             {conv.messages?.map((msg, j) => (
-                              <div key={j} className={`py-1 text-sm ${msg.role === 'user' ? 'text-blue-700' : 'text-gray-700'}`}>
-                                <span className="font-medium">{msg.role === 'user' ? 'You: ' : 'VIC: '}</span>
-                                {msg.content?.slice(0, 200)}{msg.content?.length > 200 ? '...' : ''}
+                              <div key={j} className={`py-2 text-sm border-b border-gray-100 last:border-0 ${msg.role === 'user' ? 'bg-blue-50 -mx-4 px-4' : ''}`}>
+                                <span className={`font-semibold ${msg.role === 'user' ? 'text-blue-700' : 'text-gray-700'}`}>
+                                  {msg.role === 'user' ? 'You: ' : 'VIC: '}
+                                </span>
+                                <span className="text-gray-800">
+                                  {msg.content?.slice(0, 300)}{(msg.content?.length || 0) > 300 ? '...' : ''}
+                                </span>
                               </div>
                             ))}
                           </div>
